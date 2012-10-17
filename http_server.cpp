@@ -7,24 +7,17 @@
 #include <sys/select.h>
 #include <string.h>
 
-#include <sstream>
-using std::stringstream;
-
 #include "http_server.h"
 #include "syslog.h"
+#include "cppstreams.h"
 
-HttpServer::HttpServer(Device * dev, int tcp_port, bool multithread_in) throw(string)
-	: device(dev), multithread(multithread_in)
+HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port, bool multithread_in) throw(string)
+	: interfaces(interfaces_in), multithread(multithread_in)
 {
 	int multithread_option = multithread ? MHD_USE_THREAD_PER_CONNECTION : 0;
 
 	page_dispatcher_map["/"]			=	&HttpServer::page_dispatcher_root;
-	page_dispatcher_map["/debug"]		=	&HttpServer::page_dispatcher_debug;
-	page_dispatcher_map["/style.css"]	=	&HttpServer::page_dispatcher_stylecss;
-	page_dispatcher_map["/update"]		=	&HttpServer::page_dispatcher_update;
-	page_dispatcher_map["/resampling"]	=	&HttpServer::page_dispatcher_resampling;
-	page_dispatcher_map["/read"]		=	&HttpServer::page_dispatcher_read;
-	page_dispatcher_map["/write"]		=	&HttpServer::page_dispatcher_write;
+	page_dispatcher_map["/"]			=	&HttpServer::page_dispatcher_stylecss;
 
 	daemon = MHD_start_daemon(multithread_option | MHD_USE_IPv6 | MHD_USE_DEBUG,
 			tcp_port, 0, 0, &HttpServer::access_handler_callback, this,
@@ -272,59 +265,6 @@ int HttpServer::callback_postdata_iterator(void * con_cls, enum MHD_ValueKind,
 	mangle.append(data, size);
 	condata->values.data[key] = mangle;
 	return(MHD_YES);
-}
-
-string HttpServer::make_simple_form(
-		string method, string action,
-		string div_style,
-		string variable_name, string variable_value,
-		string submit_text,
-		string text_style, string text_name, string text_value,
-		string radio_name, int radio_value) const throw()
-{
-	string rv = "<form method=\"" + method + "\" action=\"" + action + "\"><div";
-	
-	if(div_style != "")
-		rv += " class=\"" + div_style + "\"";
-			
-	rv += ">\n";
-
-	if(text_name != "")
-	{
-		rv += "<input";
-
-		if(text_style != "")
-			rv += " class=\"" + text_style + "\"";
-		
-		rv += " type=\"text\" name=\"" + text_name + "\" value=\"" + text_value + "\"/>\n";
-	}
-
-	if(radio_name != "")
-	{
-		rv += "<input type=\"radio\" name=\"" + radio_name + "\" value=\"0\"";
-
-		if(radio_value == 0)
-			rv += " checked=\"checked\" ";
-			
-		rv += "/>off\n";
-
-		rv += "<input type=\"radio\" name=\"" + radio_name + "\" value=\"1\"";
-
-		if(radio_value != 0)
-			rv += " checked=\"checked\" ";
-
-		rv += "/>on\n";
-	}
-
-	if(variable_name != "")
-		rv += "<input type=\"hidden\" name=\"" + variable_name + "\" value=\"" + variable_value + "\"/>\n";
-
-	if(submit_text != "")
-		rv += "<input type=\"submit\" value=\"" + submit_text + "\"/>\n";
-
-	rv += "</div></form>\n";
-
-	return(rv);
 }
 
 string HttpServer::KeyValues::dump(bool html) const

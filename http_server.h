@@ -1,5 +1,5 @@
-#ifndef __http_server_h__
-#define __http_server_h__
+#ifndef _http_server_h_
+#define _http_server_h_
 
 #include <sys/types.h>
 #include <stdint.h>
@@ -15,14 +15,14 @@ using std::string;
 #include <map>
 using std::map;
 
-#include "device.h"
+#include "interfaces.h"
 
 class HttpServer
 {
 	private:
 
 		struct MHD_Daemon * daemon;
-		Device *			device;
+		Interfaces *		interfaces;
 		bool				multithread;
 		static const char *	id_cookie_name;
 
@@ -87,24 +87,12 @@ class HttpServer
 		static void *		callback_request_completed(void * cls, struct MHD_Connection * connection,
 								void ** con_cls, enum MHD_RequestTerminationCode toe);
 
-		string 				make_simple_form(string method, string action,
-											string div_style = "",
-											string variable_name = "", string variable_value = "",
-											string submit_text = "",
-											string text_style = "", string text_name = "", string text_value = "",
-											string radio_name = "", int radio_value = -1) const throw();
-
 		int page_dispatcher_root		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
-		int page_dispatcher_debug		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
 		int page_dispatcher_stylecss	(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
-		int page_dispatcher_update		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
-		int page_dispatcher_resampling	(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
-		int page_dispatcher_read		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
-		int page_dispatcher_write		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
 
 	public:
 
-		HttpServer(Device *, int tcp_port, bool multithread) throw(string);
+		HttpServer(Interfaces *, int tcp_port, bool multithread) throw(string);
 		~HttpServer() throw(string);
 		void poll(int timeout) throw(string);
 };

@@ -5,7 +5,8 @@ GENERIC_OBJS	= iocd.o syslog.o identity.o
 INTERFACE_OBJS	= interfaces.o interface.o interface_elv.o
 DEVICE_OBJS		= devices.o device.o device_atmel.o
 CONTROL_OBJS	= controls.o control.o control_atmel.o
-OBJS			= $(GENERIC_OBJS) $(INTERFACE_OBJS) $(DEVICE_OBJS) $(CONTROL_OBJS)
+HTTP_OBJS		= http_server.o http_page.o
+OBJS			= $(GENERIC_OBJS) $(INTERFACE_OBJS) $(DEVICE_OBJS) $(CONTROL_OBJS) $(HTTP_OBJS)
 
 ifeq ($(TARGET), x86_64)
 	LDLIBS += -Wl,-Bstatic -lmicrohttpd -Wl,-Bdynamic -lboost_regex -lrt -lpthread
