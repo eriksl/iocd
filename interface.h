@@ -2,7 +2,6 @@
 #define _interface_h_
 
 class Interfaces;
-class Devices;
 
 #include <string>
 using std::string;
@@ -13,37 +12,40 @@ using std::vector;
 #include <pthread.h>
 #include <stdint.h>
 
-class Interface
+#include "devices.h"
+#include "identity.h"
+
+class Interface : public Identity
 {
 	public:
 		typedef vector<uint8_t> byte_array;
 
-				Interface(Interfaces * parent_interfaces, const string &id)							throw(string);
-		virtual	~Interface()																		throw();
+				Interface(Interfaces *parent_interfaces, int generation,
+						int parent_id, int ordinal, string parent_path, string path)	throw(string);
+		virtual	~Interface()															throw();
 
-		virtual	string	name()															const	throw() = 0;
-		virtual	string	bus()															const	throw() = 0;
-		virtual	string	command(const string &cmd, int timeout = 200, int chunks = 1)	const	throw(string) = 0;
+		Interfaces *	interfaces()											const	throw();
+		Devices *		devices()														throw();
 
-		void			lock()																	throw(string);
-		void			unlock()																throw(string);
-		Interfaces *	interfaces()													const	throw();
-		Devices *		devices()														const	throw();
-
-		static int		parse_bytes(string str, byte_array & values)							throw();
-		static int		timespec_diff(timespec from, timespec to)								throw();
+		string			command(string cmd, int timeout = 200, int chunks = 1)			throw();
+		static int		parse_bytes(string str, byte_array & values)					throw();
+		static int		timespec_diff(timespec from, timespec to)						throw();
 
 	protected:
 
-		string			_id;
 		int				_fd;
+		int				_enumerator;
+		Devices			_devices;
 		Interfaces 		*_interfaces;
-		Devices			*_devices;
 
 	private:
 
 		pthread_mutex_t	_mutex;
 		bool			_mutex_valid;
+		void			_lock()															throw(string);
+		void			_unlock()														throw(string);
+		virtual	string	_command(const string &cmd, int timeout, int chunks)			throw(string) = 0;
+
 
 };
 #endif

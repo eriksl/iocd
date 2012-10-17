@@ -1,10 +1,11 @@
-TARGET		= x86_64
-DEBUG		= off
-PROGRAM		= iocd
-OBJS		=  iocd.o  syslog.o  interfaces.o  interface.o  interface_elv.o  devices.o  device.o  device_atmel.o  controls.o  control.o
-DEPS		= .iocd.d .syslog.d .interfaces.d .interface.d .interface_elv.d .devices.d .device.d .device_atmel.d .controls.d .control.d
-OBJS		+=  control_atmel.o
-DEPS		+= .control_atmel.d
+TARGET			= x86_64
+DEBUG			= off
+PROGRAM			= iocd
+GENERIC_OBJS	= iocd.o syslog.o identity.o
+INTERFACE_OBJS	= interfaces.o interface.o interface_elv.o
+DEVICE_OBJS		= devices.o device.o device_atmel.o
+CONTROL_OBJS	= controls.o control.o control_atmel.o
+OBJS			= $(GENERIC_OBJS) $(INTERFACE_OBJS) $(DEVICE_OBJS) $(CONTROL_OBJS)
 
 ifeq ($(TARGET), x86_64)
 	LDLIBS += -Wl,-Bstatic -lmicrohttpd -Wl,-Bdynamic -lboost_regex -lrt -lpthread

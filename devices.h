@@ -1,4 +1,8 @@
+#ifndef _devices_h_
+#define _devices_h_
+
 #include "interface.h"
+#include "identity.h"
 
 #include <string>
 using std::string;
@@ -6,36 +10,30 @@ using std::string;
 #include <vector>
 using std::vector;
 
-#include "device.h"
-
 class Interface;
-
-#ifndef _devices_h_
-#define _devices_h_
+class Device;
 
 class Devices
 {
 	public:
 
-		typedef vector<Device *>			devices_t;
-		typedef devices_t::const_iterator	const_iterator_t;
+		typedef vector<Device *>	devices_t;
+		typedef devices_t::iterator	iterator;
 
-				Devices(Interface * interface)											throw(string);
-		virtual	~Devices()																throw();
+				Devices(Interface *interface)	throw(string);
+		virtual	~Devices()						throw();
 
-		const_iterator_t	begin()												const	throw();
-		const_iterator_t	end()												const	throw();
-		Interface *			interface()											const	throw();
-		void				add(Device *)												throw();
+		iterator	begin()						throw();
+		iterator	end()						throw();
+		void		add(Device *)				throw();
+		Interface*	interface()					throw();
 
 	protected:
 
-	private:
-
-		typedef devices_t::iterator iterator_t;
-
 		Interface	*_interface;
 		devices_t	_devices;
+
+	private:
 };
 
 #endif

@@ -1,17 +1,18 @@
+#ifndef _device_atmel_h_
+#define _device_atmel_h_
+
 #include "device.h"
 #include "interface.h"
 
 #include <string>
 using std::string;
 
-#ifndef _device_atmel_h_
-#define _device_atmel_h_
-
 class DeviceAtmel : public Device
 {
 	public:
-				DeviceAtmel(Interface*, Devices*, int address)		throw(string);
-		virtual	~DeviceAtmel()										throw();
+		DeviceAtmel(Devices*, int generation, int parent_id, int ordinal,
+					string parent_path, int address)		throw(string);
+		~DeviceAtmel()										throw();
 
 		Interface::byte_array command(string cmd,
 						int timeout = 200, int chunks = 1)	const	throw(string);

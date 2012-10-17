@@ -11,8 +11,11 @@
 using std::string;
 
 #include "interfaces.h"
+#include "interface.h"
 #include "devices.h"
+#include "device.h"
 #include "controls.h"
+#include "control.h"
 #include "syslog.h"
 
 static bool quit = false;
@@ -75,30 +78,48 @@ int main(int argc, char ** argv)
 			}
 		}
 
-		Interfaces interfaces;
-
-		Interfaces::const_iterator_t interface;
+		Interfaces				interfaces;
+		Interfaces::iterator	interface;
+		Devices::iterator		device;
+		Controls::iterator		control;
 
 		for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
 		{
-			vlog("interface: %s (%s)\n", (**interface).name().c_str(), (**interface).bus().c_str());
-
-			Devices::const_iterator_t device;
+			vlog("interface[%s]: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
+					(**interface).generation().c_str(),
+					(**interface).longname().c_str(),
+					(**interface).shortname().c_str(),
+					(**interface).path().c_str(),
+					(**interface).ordinal().c_str(),
+					(**interface).parent_id().c_str(),
+					(**interface).id().c_str());
 
 			for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
 			{
-				vlog("    device: %s (%s)\n", (**device).name().c_str(), (**device).bus().c_str());
-
-				Controls::const_iterator_t control;
+				vlog("    device[%s]: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
+						(**device).generation().c_str(),
+						(**device).longname().c_str(),
+						(**device).shortname().c_str(),
+						(**device).path().c_str(),
+						(**device).ordinal().c_str(),
+						(**device).parent_id().c_str(),
+						(**device).id().c_str());
 
 				for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
-					vlog("        control: %s (%s) (%d-%d%s) (%s) (value = %d) (counter = %d)\n",
-							(**control).name().c_str(),
+				{
+					vlog("            control[%s]: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s} (%d-%d%s) (%s) (value = %d) (counter = %d)\n",
+							(**control).generation().c_str(),
+							(**control).longname().c_str(),
+							(**control).shortname().c_str(),
+							(**control).path().c_str(),
+							(**control).ordinal().c_str(),
+							(**control).parent_id().c_str(),
 							(**control).id().c_str(),
 							(**control).min(), (**control).max(), (**control).unit().c_str(),
 							(**control).properties().c_str(),
 							(**control).canread()  ? (**control).read() : -1,
 							(**control).cancount() ? (**control).readresetcounter() : -1);
+				}
 			}
 		}
 

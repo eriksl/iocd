@@ -1,40 +1,26 @@
 #include "device.h"
 #include "devices.h"
 #include "controls.h"
+#include "cppstreams.h"
 
-Device::Device(Interface *parent_interface, Devices *parent_devices) throw(string) :
-	_interface(parent_interface),
-	_devices(parent_devices)
+Device::Device(Devices *parent_devices, int generation_in, int parent_id_in, int ordinal_in, string parent_path_in) throw(string)
+	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
+			_devices(parent_devices),
+			_controls(this),
+			_enumerator(1)
 {
-	_controls = new Controls(parent_interface, this);
 }
 
 Device::~Device() throw()
 {
-	delete _controls;
 }
 
-string Device::name() const throw()
-{
-	return(_name);
-}
-
-string Device::bus() const throw()
-{
-	return(_bus);
-}
-
-Interface* Device::interface() const throw()
-{
-	return(_interface);
-}
-
-Devices* Device::devices() const throw()
+Devices* Device::devices() throw()
 {
 	return(_devices);
 }
 
-Controls* Device::controls() const throw()
+Controls* Device::controls() throw()
 {
-	return(_controls);
+	return(&_controls);
 }

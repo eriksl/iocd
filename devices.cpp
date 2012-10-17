@@ -1,13 +1,16 @@
+#include "device.h"
 #include "devices.h"
+#include "identity.h"
 #include "syslog.h"
 
-Devices::Devices(Interface * interface_in) throw(string) : _interface(interface_in)
+Devices::Devices(Interface *interface_in) throw(string)
+	: _interface(interface_in)
 {
 }
 
 Devices::~Devices() throw()
 {
-	iterator_t it;
+	iterator it;
 
 	for(it = _devices.begin(); it != _devices.end(); it++)
 		delete *it;
@@ -15,22 +18,22 @@ Devices::~Devices() throw()
 	_devices.clear();
 }
 
-Devices::const_iterator_t Devices::begin() const throw()
+Devices::iterator Devices::begin() throw()
 {
 	return(_devices.begin());
 }
 
-Devices::const_iterator_t Devices::end() const throw()
+Devices::iterator Devices::end() throw()
 {
 	return(_devices.end());
 }
 
-Interface* Devices::interface() const throw()
+Interface* Devices::interface() throw()
 {
 	return(_interface);
 }
 
-void Devices::add(Device * device_in) throw()
+void Devices::add(Device * device) throw()
 {
-	_devices.push_back(device_in);
+	_devices.push_back(device);
 }

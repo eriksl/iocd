@@ -1,37 +1,33 @@
-#include "control.h"
+#ifndef _controls_h_
+#define _controls_h_
 
 #include <vector>
 using std::vector;
 
-class Interface;
 class Device;
-
-#ifndef _controls_h_
-#define _controls_h_
+class Control;
 
 class Controls
 {
 	public:
 
-		typedef vector<Control *>			controls_t;
-		typedef controls_t::const_iterator	const_iterator_t;
+		typedef vector<Control *>		controls_t;
+		typedef controls_t::iterator	iterator;
 
-				Controls(Interface *, Device *)	throw();
-		virtual ~Controls()	throw();
+				Controls(Device *)		throw();
+		virtual ~Controls()				throw();
 
-		const_iterator_t	begin()		const	throw();
-		const_iterator_t	end()		const	throw();
-		void				add(Control *)		throw();
+		iterator	begin()				throw();
+		iterator	end()				throw();
+		void		add(Control *)		throw();
+		Device*		device()			throw();
 
 	protected:
 
 	private:
 
-		typedef controls_t::iterator iterator_t;
-
-		controls_t	_controls;
-		Interface	*_interface;
 		Device		*_device;
+		controls_t	_controls;
 };
 
 #endif

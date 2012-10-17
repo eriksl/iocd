@@ -1,12 +1,15 @@
 #include "interface.h"
 #include "devices.h"
+#include "identity.h"
 #include "cppstreams.h"
 #include "syslog.h"
 
-Interface::Interface(Interfaces * parent_interfaces, const string &id) throw(string) :
-	_id(id), _fd(-1), _interfaces(parent_interfaces)
+Interface::Interface(Interfaces *parent_interfaces,
+			int generation_in, int parent_id_in, int ordinal_in,
+			string parent_path_in, string) throw(string)
+	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
+		_fd(-1), _enumerator(1), _devices(this), _interfaces(parent_interfaces)
 {
-	_devices		= new Devices(this);
 	_mutex_valid	= false;
 	pthread_mutex_init(&_mutex, 0);
 	_mutex_valid	= true;
@@ -19,20 +22,22 @@ Interface::~Interface() throw()
 		pthread_mutex_destroy(&_mutex);
 		_mutex_valid = false;
 	}
-
-	delete _devices;
 }
 
-void Interface::lock() throw(string)
+void Interface::_lock() throw(string)
 {
+	dlog("--> LOCK\n");
+
 	if(_mutex_valid)
 		pthread_mutex_lock(&_mutex);
 	else
 		throw(string("Interface::lock: mutex invalid"));
 }
 
-void Interface::unlock() throw(string)
+void Interface::_unlock() throw(string)
 {
+	dlog("<-- UNLOCK\n");
+
 	if(_mutex_valid)
 		pthread_mutex_unlock(&_mutex);
 	else
@@ -44,9 +49,35 @@ Interfaces* Interface::interfaces() const throw()
 	return(_interfaces);
 }
 
-Devices* Interface::devices() const throw()
+Devices* Interface::devices() throw()
 {
-	return(_devices);
+	return(&_devices);
+}
+
+string Interface::command(string cmd, int timeout, int chunks) throw()
+{
+	string result;
+
+	try
+	{
+		_lock();
+		result = _command(cmd, timeout, chunks);
+		_unlock();
+	}
+	catch(...)
+	{
+		try
+		{
+			_unlock();
+		}
+		catch(...)
+		{
+		}
+
+		throw;
+	}
+
+	return(result);
 }
 
 int Interface::parse_bytes(string str, byte_array & values) throw()

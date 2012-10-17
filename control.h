@@ -1,45 +1,40 @@
-#include <string>
-using std::string;
-
-class Interface;
-class Device;
-
 #ifndef _control_h_
 #define _control_h_
 
-class Control
+#include <string>
+using std::string;
+
+class Controls;
+
+#include "identity.h"
+
+class Control : public Identity
 {
 	public:
 
-				Control(Interface *parent_interface, Device *parent_device,
-						int min, int max, string unit)		throw(string);
-		virtual	~Control()									throw();
+				Control(Controls *parent_controls,
+						int generation, int parent_id, int ordinal, string parent_path,
+						int min, int max, string unit)	throw(string);
+		virtual	~Control()								throw();
 
-		virtual	int		read()						throw(string);
-		virtual	void	write(int)					throw(string);
-		virtual	int		readwrite(int)				throw(string);
-		virtual	int		readcounter()				throw(string);
-		virtual	int		readresetcounter()			throw(string);
-		virtual int		readpwmmode()				throw(string);
-		virtual	void	writepwmmode(int)			throw(string);
+		virtual	int		read()					throw(string);
+		virtual	void	write(int)				throw(string);
+		virtual	int		readwrite(int)			throw(string);
+		virtual	int		readcounter()			throw(string);
+		virtual	int		readresetcounter()		throw(string);
+		virtual int		readpwmmode()			throw(string);
+		virtual	void	writepwmmode(int)		throw(string);
 
-		string	id()				const	throw();
-		string	name()				const	throw();
-		string	bus()				const	throw();
+		int		min()					const	throw();
+		int		max()					const	throw();
+		string	unit()					const	throw();
+		string	properties()			const	throw();
 
-		int		min()				const	throw();
-		int		max()				const	throw();
-		string	unit()				const	throw();
-		string	properties()		const	throw();
-
-		Interface	*interface()	const	throw();
-		Device		*device()		const	throw();
-
-		bool	canread()			const	throw();
-		bool	canwrite()			const	throw();
-		bool	cancount()			const	throw();
-		bool	canpwm()			const	throw();
-		bool	isdigital()			const	throw();
+		bool	canread()				const	throw();
+		bool	canwrite()				const	throw();
+		bool	cancount()				const	throw();
+		bool	canpwm()				const	throw();
+		bool	isdigital()				const	throw();
 
 	protected:
 
@@ -52,10 +47,7 @@ class Control
 			cp_isdigital	= 1 << 4
 		} control_props_t;
 
-		Interface		*_interface;
-		Device			*_device;
-		string			_name;
-		string			_bus;
+		Controls		*_controls;
 		int				_min;
 		int				_max;
 		string			_unit;

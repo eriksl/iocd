@@ -1,11 +1,11 @@
 #include "control.h"
-#include "interface.h"
-#include "device.h"
+#include "cppstreams.h"
 
-Control::Control(Interface *parent_interface, Device *parent_device,
-		int min_in, int max_in, string unit_in) throw(string)
-		: _interface(parent_interface), _device(parent_device),
-		_min(min_in), _max(max_in), _unit(unit_in)
+Control::Control(Controls *parent_controls,
+				int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
+				int min_in, int max_in, string unit_in) throw(string)
+	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
+			_controls(parent_controls), _min(min_in), _max(max_in), _unit(unit_in)
 {
 }
 
@@ -13,28 +13,19 @@ Control::~Control() throw()
 {
 }
 
-Interface* Control::interface() const throw()
+int Control::min() const throw()
 {
-	return(_interface);
+	return(_min);
 }
 
-Device* Control::device() const throw()
+int Control::max() const throw()
 {
-	return(_device);
+	return(_max);
 }
 
-string Control::id() const throw()
+string Control::unit() const throw()
 {
-	return(_interface->bus() + "@" + _device->bus() + "@" + _bus);
-}
-
-string Control::name() const throw()
-{
-	return(_name);
-}
-string Control::bus() const throw()
-{
-	return(_bus);
+	return(_unit);
 }
 
 string Control::properties() const throw()
@@ -75,21 +66,6 @@ string Control::properties() const throw()
 	}
 
 	return(result);
-}
-
-int Control::min() const throw()
-{
-	return(_min);
-}
-
-int Control::max() const throw()
-{
-	return(_max);
-}
-
-string Control::unit() const throw()
-{
-	return(_unit);
 }
 
 bool Control::canread() const throw()

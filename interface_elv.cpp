@@ -1,6 +1,6 @@
-#include "devices.h"
 #include "interface_elv.h"
 #include "device_atmel.h"
+#include "devices.h"
 #include "syslog.h"
 
 #include "cppstreams.h"
@@ -11,33 +11,37 @@
 #include <poll.h>
 #include <unistd.h>
 
-InterfaceELV::InterfaceELV(Interfaces * interfaces_in, const string &id) throw(string) : Interface(interfaces_in, id)
+InterfaceELV::InterfaceELV(Interfaces *interfaces_in,
+			int generation_in, int parent_id_in, int ordinal_in,
+			string parent_path_in, string path_in) throw(string)
+	:
+		Interface(interfaces_in, generation_in, parent_id_in, ordinal_in, parent_path_in, path_in)
 {
-	_open();
-	_probe_bus();
+	string	device_short;
+	size_t	pos;
+
+	_open(path_in);
+
+	pos = path_in.find_last_of("/");
+
+	if(pos != string::npos)
+		device_short = path_in.substr(pos + 1);
+	else
+		device_short = path_in;
+
+	_set_shortname(string("usb:") + device_short + ":elv");
+	_set_longname(string("ELV I2C interface at ") + path_in);
+
+	_probe();
 }
 
-InterfaceELV::~InterfaceELV() throw()
-{
-}
-
-string InterfaceELV::name() const throw()
-{
-	return("ELV I2C interface");
-}
-
-string InterfaceELV::bus() const throw()
-{
-	return(string("usb:") + _id);
-}
-
-void InterfaceELV::_open() throw(string)
+void InterfaceELV::_open(string device_node) throw(string)
 {
     int             result;
     struct termios  tio;
 
-    if((_fd = ::open(_id.c_str(), O_RDWR | O_NOCTTY | O_EXCL, 0)) < 0)
-		throw(string("InterfaceELV::_open: cannot open device ") + _id);
+    if((_fd = ::open(device_node.c_str(), O_RDWR | O_NOCTTY | O_EXCL, 0)) < 0)
+		throw(string("InterfaceELV::_open: cannot open device ") + device_node);
 
 	ioctl(_fd, TIOCEXCL, 1);
 
@@ -93,8 +97,6 @@ void InterfaceELV::_open() throw(string)
 		throw(string("InterfaceELV::_open: error in tcsetattr"));
 	}
 
-	dlog("*** reset\n");
-
 	string rv;
 
 	try
@@ -103,22 +105,20 @@ void InterfaceELV::_open() throw(string)
 	}
 	catch(string s)
 	{
-		vlog("open: exception during reset: %s\n", s.c_str());
+		dlog("open: exception during reset: %s\n", s.c_str());
 		::close(_fd);
 		throw(string("Interface::ELV: not found"));
 	}
 
-	dlog("result: \"%s\"\n", rv.c_str());
-
 	if(rv.find("ELV USB-I2C-Interface v1.6") == string::npos)
 	{
-		vlog("InterfaceELV: id string not recognised\n");
+		dlog("InterfaceELV: id string not recognised\n");
 		::close(_fd);
 		throw(string("interface ELV not found"));
 	}
 }
 
-string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) const throw(string)
+string InterfaceELV::_command(const string &cmd_in, int timeout, int chunks) throw(string)
 {
 	static char		buffer[256];
 	string			cmd;
@@ -130,7 +130,7 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 	int				timeout_left;
 
 	if(clock_gettime(CLOCK_MONOTONIC, &start))
-		throw(string("InterfaceELV::command: clock_gettime error\n"));
+		throw(string("InterfaceELV::_command: clock_gettime error\n"));
 
 	cmd = string(":") + cmd_in + string("\n");
 
@@ -139,12 +139,12 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 	while(true)
 	{
 		if(clock_gettime(CLOCK_MONOTONIC, &now))
-			throw(string("InterfaceELV::command: clock_gettime error\n"));
+			throw(string("InterfaceELV::_command: clock_gettime error\n"));
 
 		timeout_left = timespec_diff(start, now);
 
 		if((timeout > 0) && (timeout_left < 0))
-			throw(string("InterfaceELV::command: fatal timeout (1)"));
+			throw(string("InterfaceELV::_command: fatal timeout (1)"));
 
 		pfd.fd		= _fd;
 		pfd.events	= POLLIN | POLLERR;
@@ -152,13 +152,13 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 		pr = poll(&pfd, 1, 0);
 
 		if(pr < 0)
-			throw(string("InterfaceELV::command: poll error (1)"));
+			throw(string("InterfaceELV::_command: poll error (1)"));
 
 		if(pr == 0)
 			break;
 
 		if(pfd.revents & POLLERR)
-			throw(string("InterfaceELV::command: poll error (2)"));
+			throw(string("InterfaceELV::_command: poll error (2)"));
 
 		if(pfd.revents & POLLIN)
 		{
@@ -169,7 +169,7 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 	}
 
 	if(clock_gettime(CLOCK_MONOTONIC, &now))
-		throw(string("InterfaceELV::command: clock_gettime error\n"));
+		throw(string("InterfaceELV::_command: clock_gettime error\n"));
 
 	timeout_left = timeout > 0 ? timeout - timespec_diff(start, now) : -1;
 
@@ -179,23 +179,21 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 	pr = poll(&pfd, 1, timeout_left);
 
 	if(pr < 0)
-		throw(string("InterfaceELV::command: poll error (3)"));
+		throw(string("InterfaceELV::_command: poll error (3)"));
 
 	if(pfd.revents & POLLERR)
-		throw(string("InterfaceELV::command: poll error (4)"));
+		throw(string("InterfaceELV::_command: poll error (4)"));
 
 	if(!(pfd.revents & POLLOUT))
-		throw(string("InterfaceELV::command: fatal timeout (2)"));
-
-	//dlog("write: \"%s\"\n", cmd.c_str());
+		throw(string("InterfaceELV::_command: fatal timeout (2)"));
 
 	if(::write(_fd, cmd.c_str(), cmd.length()) != (ssize_t)cmd.length())
-		throw(string("InterfaceELV::command: write error"));
+		throw(string("InterfaceELV::_command: write error"));
 
 	while(chunks > 0)
 	{
 		if(clock_gettime(CLOCK_MONOTONIC, &now))
-			throw(string("InterfaceELV::command: clock_gettime error\n"));
+			throw(string("InterfaceELV::_command: clock_gettime error\n"));
 
 		timeout_left = timeout > 0 ? timeout - timespec_diff(start, now) : -1;
 
@@ -210,13 +208,13 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 		pr = poll(&pfd, 1, timeout_left);
 
 		if(pr < 0)
-			throw(string("InterfaceELV::command: poll error (5)"));
+			throw(string("InterfaceELV::_command: poll error (5)"));
 
 		if(pr == 0)
 			break;
 
 		if(pfd.revents & POLLERR)
-			throw(string("InterfaceELV::command: poll error (6)"));
+			throw(string("InterfaceELV::_command: poll error (6)"));
 
 		if(pfd.revents & POLLIN)
 		{
@@ -233,7 +231,7 @@ string InterfaceELV::command(const string &cmd_in, int timeout, int chunks) cons
 	return(rv);
 }
 
-void InterfaceELV::_probe_bus() throw()
+void InterfaceELV::_probe() throw()
 {
 	_probe_atmel();
 }
@@ -251,7 +249,7 @@ void InterfaceELV::_probe_atmel() throw()
 
 		try
 		{
-			device = new DeviceAtmel(this, _devices, address);
+			device = new DeviceAtmel(&_devices, _generation + 1, _id, _enumerator, path(), address);
 		}
 		catch(string e)
 		{
@@ -259,16 +257,17 @@ void InterfaceELV::_probe_atmel() throw()
 		}
 		catch(...)
 		{
+			error = "<unspecified error";
 		}
 
 		if(device)
 		{
-			vlog("atmel@0x%02x found: %s\n", address, device->name().c_str());
-			_devices->add(device);
+			dlog("atmel@0x%02x found: %s\n", address, device->shortname().c_str());
+			_devices.add(device);
 		}
 		else
 		{
-			vlog("atmel@0x%02x not found: %s\n", address, error.c_str());
+			dlog("atmel@0x%02x not found: %s\n", address, error.c_str());
 		}
 	}
 }

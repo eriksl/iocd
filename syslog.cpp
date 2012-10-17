@@ -3,8 +3,8 @@
 #include <syslog.h>
 #include "syslog.h"
 
-bool isdaemon = false;
-bool debug = false;
+bool isdaemon	= false;
+bool debug		= false;
 
 void vlog(const char * format, ...)
 {

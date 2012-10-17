@@ -1,17 +1,15 @@
+#include "control.h"
+#include "controls.h"
 #include "syslog.h"
 
-#include "controls.h"
-#include "control.h"
-
-Controls::Controls(Interface * parent_interface, Device * parent_device) throw() :
-	_interface(parent_interface),
-	_device(parent_device)
+Controls::Controls(Device *parent_device) throw()
+	:	_device(parent_device)
 {
 }
 
 Controls::~Controls() throw()
 {
-	iterator_t it;
+	iterator it;
 
 	for(it = _controls.begin(); it != _controls.end(); it++)
 		delete *it;
@@ -19,17 +17,22 @@ Controls::~Controls() throw()
 	_controls.clear();
 }
 
-Controls::const_iterator_t Controls::begin() const throw()
+Controls::iterator Controls::begin() throw()
 {
 	return(_controls.begin());
 }
 
-Controls::const_iterator_t Controls::end() const throw()
+Controls::iterator Controls::end() throw()
 {
 	return(_controls.end());
 }
 
-void Controls::add(Control * new_control) throw()
+void Controls::add(Control* new_control) throw()
 {
 	_controls.push_back(new_control);
+}
+
+Device *Controls::device() throw()
+{
+	return(_device);
 }

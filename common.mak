@@ -34,7 +34,7 @@ endif
 CC	= $(EXECPREFIX)gcc
 CPP	= $(EXECPREFIX)g++
 
-.PHONY:		all depend clean install rpm dpkg
+.PHONY:		all depend clean pristine install rpm dpkg
 
 DATE			=	`date '+%Y%m%d%H%M'`
 VERSION			=	daily-$(DATE)
@@ -59,6 +59,8 @@ DPKGDESTDIR		=	$(DPKGBUILDDIR)/dpkg/root
 DPKGDEBIANDESTD	=	$(DPKGDESTDIR)/DEBIAN
 DPKGCHANGELOG	=	$(DPKGDEBIANDESTD)/changelog
 DPKGCONTROL		=	$(DPKGDEBIANDESTD)/control
+
+DEPS			=	$(patsubst %.o,.%.d, $(OBJS))
 
 all:		depend $(PROGRAM)
 
@@ -95,8 +97,11 @@ install:	$(PROGRAM)
 
 clean:
 			@echo "CLEAN"
-			@-git clean -f -d -q 2> /dev/null || true
 			rm -f $(PROGRAM) $(OBJS) 2> /dev/null || true
+
+pristine:	
+			@echo "PRISTINE"
+			git clean -f -d -q
 
 rpm:
 #

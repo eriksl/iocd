@@ -1,33 +1,37 @@
+#ifndef _interfaces_h_
+#define _interfaces_h_
+
+#include <string>
+using std::string;
+
 #include <vector>
 using std::vector;
 
-#include "interface.h"
-
-#ifndef _interfaces_h_
-#define _interfaces_h_
+class Interface;
 
 class Interfaces
 {
 	public:
 
-		typedef vector<Interface *>				interfaces_t;
-		typedef interfaces_t::const_iterator	const_iterator_t;
+		typedef vector<Interface *>		interfaces_t;
+		typedef interfaces_t::iterator	iterator;
 
-				Interfaces()	throw();
-		virtual ~Interfaces()	throw();
+		Interfaces()					throw(string);
+		virtual ~Interfaces()			throw();
 
-		const_iterator_t	begin()	const	throw();
-		const_iterator_t	end()	const	throw();
+		iterator	begin()				throw();
+		iterator	end()				throw();
 
 	protected:
 
+		int				_enumerator;
+		interfaces_t	_interfaces;
+
 	private:
 
-		typedef interfaces_t::iterator iterator_t;
-
-		interfaces_t _interfaces;
-
-		void _probe_elv() throw();
+		void	_probe()			throw();
+		void	_probe_usb()		throw();
+		void	_probe_usb_elv()	throw();
 };
 
 #endif

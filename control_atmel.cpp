@@ -1,13 +1,18 @@
 #include "control_atmel.h"
-#include "interface.h"
+#include "controls.h"
 #include "device.h"
+#include "interface.h"
 #include "cppstreams.h"
 #include "syslog.h"
 
-ControlAtmel::ControlAtmel(Interface *parent_interface, Device *parent_device, 
-		int min_in, int max_in, string unit_in, control_t control_type_in, int ordinal_in) throw(string) :
-	Control(parent_interface, parent_device, min_in, max_in, unit_in),
-	_control_type(control_type_in), _ordinal(ordinal_in)
+ControlAtmel::ControlAtmel(Controls *parent_controls,
+			int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
+			int min_in, int max_in, string unit_in, control_t control_type_in, int index_in) throw(string)
+	:
+		Control(parent_controls,
+				generation_in, parent_id_in, ordinal_in, parent_path_in,
+				min_in, max_in, unit_in),
+			_control_type(control_type_in), _index(index_in)
 {
 	stringstream	conv;
 	string			cdesc;
@@ -53,12 +58,13 @@ ControlAtmel::ControlAtmel(Interface *parent_interface, Device *parent_device,
 		}
 	}
 
-	conv << cdesc << " " << ordinal_in;
-	_name = conv.str();
+	conv.str("");
+	conv << "atmel:" << _ordinal << ":" << cid << ":" << _index;
+	_set_shortname(conv.str());
 
 	conv.str("");
-	conv << "atmel:" << cid << "_" << ordinal_in;
-	_bus = conv.str();
+	conv << "Atmel attiny control #" << _ordinal << ": " << cdesc << " " << _index;
+	_set_longname(conv.str());
 }
 
 ControlAtmel::~ControlAtmel() throw()
@@ -71,7 +77,7 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	Interface::byte_array	bytes;
 
 	if(!(cmd & 0x0f))
-		cmd |= _ordinal;
+		cmd |= _index;
 
 	in << "w " << hex << setw(2) << setfill('0') << cmd;
 
@@ -87,7 +93,7 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	if(param4 != -1)
 		in << param4 << " ";
 
-	bytes = _device->command(in.str());
+	bytes = _controls->device()->command(in.str());
 
 	if(bytes.size() != (size_t)length)
 		throw(string("ControlAtmel::_query: invalid result length"));
