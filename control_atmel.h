@@ -31,6 +31,7 @@ class ControlAtmel : public Control
 		int		readresetcounter()		throw(string);
 		int		readpwmmode()			throw(string);
 		void	writepwmmode(int)		throw(string);
+		string	readpwmmode_string()	throw(string);
 
 	protected:
 

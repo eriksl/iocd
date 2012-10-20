@@ -4,6 +4,10 @@
 #include "cppstreams.h"
 #include "syslog.h"
 
+#include <boost/lexical_cast.hpp>
+using boost::lexical_cast;
+using boost::bad_lexical_cast;
+
 Interfaces::Interfaces() throw(string)
 	:	_enumerator(1)
 {

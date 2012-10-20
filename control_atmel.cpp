@@ -275,3 +275,19 @@ void ControlAtmel::writepwmmode(int value) throw(string)
 		}
 	}
 }
+
+string ControlAtmel::readpwmmode_string() throw(string)
+{
+	int mode = readpwmmode();
+
+	switch(mode)
+	{
+		case(0): return("off");
+		case(1): return("down");
+		case(2): return("up");
+		case(3): return("up/down");
+		default: {}
+	}
+
+	return("invalid");
+}
