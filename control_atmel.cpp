@@ -60,7 +60,7 @@ ControlAtmel::ControlAtmel(Controls *parent_controls,
 	}
 
 	conv.str("");
-	conv << "atmel:" << _ordinal << ":" << cid << ":" << _index;
+	conv << "atmel:" << cid << ":" << _index;
 	_set_shortname(conv.str());
 
 	conv.str("");
