@@ -286,13 +286,13 @@ void ControlAtmel::writepwmmode(int value) throw(string)
 	{
 		case(digital_output):
 		{
-			_query(0x60, 3, value & 0xff);
+			_query(0x60, 4, value & 0xff);
 			break;
 		}
 
 		case(pwm_output):
 		{
-			_query(0xa0, 3, value & 0xff);
+			_query(0xa0, 4, value & 0xff);
 			break;
 		}
 
