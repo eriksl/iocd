@@ -14,7 +14,22 @@
 HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port, bool multithread_in) throw(string)
 	: interfaces(interfaces_in), multithread(multithread_in)
 {
-	int multithread_option = multithread ? MHD_USE_THREAD_PER_CONNECTION : 0;
+	page_dispatcher_map["/"]				=	&HttpServer::page_dispatcher_root;
+	page_dispatcher_map["/read"]			=	&HttpServer::page_dispatcher_read;
+	page_dispatcher_map["/write"]			=	&HttpServer::page_dispatcher_write;
+	page_dispatcher_map["/readcounter"]		=	&HttpServer::page_dispatcher_readcounter;
+	page_dispatcher_map["/resetcounter"]	=	&HttpServer::page_dispatcher_resetcounter;
+	page_dispatcher_map["/readpwmmode"]		=	&HttpServer::page_dispatcher_readpwmmode;
+	page_dispatcher_map["/writepwmmode"]	=	&HttpServer::page_dispatcher_writepwmmode;
+	page_dispatcher_map["/info"]			=	&HttpServer::page_dispatcher_info;
+	page_dispatcher_map["/style.css"]		=	&HttpServer::page_dispatcher_stylecss;
+
+	dlog("start HttpServer\n");
+
+	daemon_handle_ipv4 = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION | MHD_USE_DEBUG,
+			tcp_port, 0, 0, &HttpServer::access_handler_callback, this,
+			MHD_OPTION_NOTIFY_COMPLETED, &HttpServer::callback_request_completed, this,
+			MHD_OPTION_END);
 
 	page_dispatcher_map["/"]			=	&HttpServer::page_dispatcher_root;
 	page_dispatcher_map["/"]			=	&HttpServer::page_dispatcher_stylecss;
@@ -96,7 +111,7 @@ string HttpServer::html_header(const string & title, int reload, string reload_u
 				"    <head>\n" +
 				"        <meta http-equiv=\"Content-type\" content=\"text/html; charset=UTF-8\"/>\n" +
 				cssurl +
-				refresh_header +
+				refresh_header + "\n" +
 				"        <title>" + title + "</title>\n" + 
 				"    </head>\n" +
 				"    <body>\n");
@@ -215,7 +230,7 @@ int HttpServer::access_handler(struct MHD_Connection * connection,
 		return((this->*fn)(connection, method, con_cls, variables));
 	}
 
-	return(http_error(connection, MHD_HTTP_NOT_FOUND, string("URI ") + url + " not found"));
+	return(http_error(connection, MHD_HTTP_NOT_FOUND, string("ERROR: URI ") + url + " not found"));
 }
 
 int HttpServer::callback_keyvalue_iterator(void * cls, enum MHD_ValueKind, const char * key, const char * value)
@@ -299,4 +314,52 @@ string HttpServer::KeyValues::dump(bool html) const
 		rv += "</table>\n";
 
 	return(rv);
+}
+
+//	based on javascript encodeURIComponent()
+//	http://www.zedwood.com/article/111/cpp-urlencode-function	
+
+static string char2hex(char dec)
+{
+	char	dig1	= (dec & 0xf0) >> 4;
+	char	dig2	= (dec & 0x0f);
+	string	result;
+
+	if(0 <= dig1 && dig1 <= 9)
+		dig1 += 48;			//0,48 inascii
+	if(10 <= dig1 && dig1 <= 15)
+		dig1 += 97 - 10;	//a,97 inascii
+	if(0 <= dig2 && dig2 <= 9)
+		dig2 += 48;
+	if(10 <= dig2 && dig2 <= 15)
+		dig2 += 97 - 10;
+
+	result.append(&dig1, 1);
+	result.append(&dig2, 1);
+	return(result);
+}
+
+string HttpServer::uriencode(string in) throw()
+{
+	string	escaped = "";
+	int		ix, length;
+
+	length = in.length();
+
+	for(ix = 0; ix < length; ix++)
+	{
+		if((48 <= in[ix] && in[ix] <= 57)	||			//	0 - 9
+			(65 <= in[ix] && in[ix] <= 90)	||			//	abc - xyz
+			(97 <= in[ix] && in[ix] <= 122)	||			//	ABC - XYZ
+			(in[ix]=='~' || in[ix]=='!' || in[ix]=='*' || in[ix]=='(' || in[ix]==')' || in[ix]=='\''))
+		{
+			escaped.append(&in[ix], 1);
+		}
+		else
+		{
+			escaped.append("%");
+			escaped.append(char2hex(in[ix]));			//converts char 255 to string "ff"
+		}
+	}
+	return(escaped);
 }

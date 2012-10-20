@@ -87,8 +87,15 @@ class HttpServer
 		static void *		callback_request_completed(void * cls, struct MHD_Connection * connection,
 								void ** con_cls, enum MHD_RequestTerminationCode toe);
 
-		int page_dispatcher_root		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
-		int page_dispatcher_stylecss	(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_root			(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_read			(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_write			(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_readcounter		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_resetcounter	(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_readpwmmode		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_writepwmmode	(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_info			(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
+		int page_dispatcher_stylecss		(MHD_Connection *, const string & method, ConnectionData * con_cls, const KeyValues & variables) const throw();
 
 	public:
 
