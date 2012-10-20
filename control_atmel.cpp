@@ -77,8 +77,12 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	stringstream			in;
 	Interface::byte_array	bytes;
 
-	if(!(cmd & 0x0f))
+	dlog("cmd1: %x\n", cmd);
+
+	if((cmd & 0x0f) == 0x00)
 		cmd |= _index;
+
+	dlog("cmd2: %x\n", cmd);
 
 	in << "w " << hex << setw(2) << setfill('0') << cmd;
 
@@ -94,7 +98,8 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	if(param4 != -1)
 		in << param4 << " ";
 
-	bytes = _controls->device()->command(in.str());
+	dlog("length required: %d\n", length);
+	dlog("length actual: %d\n", bytes.size());
 
 	if(bytes.size() != (size_t)length)
 		throw(string("ControlAtmel::_query: invalid result length"));
@@ -110,12 +115,14 @@ double ControlAtmel::read() throw(string)
 	{
 		case(digital_input):
 		{
+			dlog("_query digital input\n");
 			bytes = _query(0x30, 4);
 			return(double(bytes[2]));
 		}
 
 		case(analog_input):
 		{
+			dlog("_query analog input\n");
 			bytes = _query(0xc0, 3);
 			bytes = _query(0x01, 5);
 			return(double((bytes[2] << 8) | (bytes[3])));
@@ -123,12 +130,14 @@ double ControlAtmel::read() throw(string)
 
 		case(digital_output):
 		{
+			dlog("_query digital output\n");
 			bytes = _query(0x50, 4);
 			return(double(bytes[2]));
 		}
 
 		case(pwm_output):
 		{
+			dlog("_query pwm output\n");
 			bytes = _query(0x90, 5);
 			return(double((bytes[2] << 8) | (bytes[3])));
 		}
@@ -148,12 +157,14 @@ void ControlAtmel::write(int value) throw(string)
 	{
 		case(digital_output):
 		{
-			_query(0x40, 3, value & 0xff);
+			dlog("_query write digital output\n");
+			_query(0x40, 4, value & 0xff);
 			break;
 		}
 
 		case(pwm_output):
 		{
+			dlog("_query write pwm output\n");
 			_query(0x80, 3, (value & 0xff00) >> 8, value & 0x00ff);
 			break;
 		}
@@ -173,6 +184,7 @@ int ControlAtmel::readcounter() throw(string)
 	{
 		case(digital_input):
 		{
+			dlog("_query: readcounter\n");
 			bytes = _query(0x10, 7);
 			return( ((bytes[2] & 0xff000000) >> 24) |
 					((bytes[3] & 0x00ff0000) >> 16) |
@@ -197,6 +209,7 @@ int ControlAtmel::readresetcounter() throw(string)
 	{
 		case(digital_input):
 		{
+			dlog("_query: readresetcounter %d\n", _index);
 			bytes = _query(0x20, 7);
 			return( ((bytes[2] & 0xff000000) >> 24) |
 					((bytes[3] & 0x00ff0000) >> 16) |
