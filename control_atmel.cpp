@@ -7,11 +7,12 @@
 
 ControlAtmel::ControlAtmel(Controls *parent_controls,
 			int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
-			int min_in, int max_in, string unit_in, control_t control_type_in, int index_in) throw(string)
+			double min_in, double max_in, string unit_in, int precision_in,
+			control_t control_type_in, int index_in) throw(string)
 	:
 		Control(parent_controls,
 				generation_in, parent_id_in, ordinal_in, parent_path_in,
-				min_in, max_in, unit_in),
+				min_in, max_in, unit_in, precision_in),
 			_control_type(control_type_in), _index(index_in)
 {
 	stringstream	conv;
@@ -101,7 +102,7 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	return(bytes);
 }
 
-int ControlAtmel::read() throw(string)
+double ControlAtmel::read() throw(string)
 {
 	Interface::byte_array bytes;
 
@@ -110,26 +111,26 @@ int ControlAtmel::read() throw(string)
 		case(digital_input):
 		{
 			bytes = _query(0x30, 4);
-			return(bytes[2]);
+			return(double(bytes[2]));
 		}
 
 		case(analog_input):
 		{
 			bytes = _query(0xc0, 3);
 			bytes = _query(0x01, 5);
-			return((bytes[2] << 8) | (bytes[3]));
+			return(double((bytes[2] << 8) | (bytes[3])));
 		}
 
 		case(digital_output):
 		{
 			bytes = _query(0x50, 4);
-			return(bytes[2]);
+			return(double(bytes[2]));
 		}
 
 		case(pwm_output):
 		{
 			bytes = _query(0x90, 5);
-			return((bytes[2] << 8) | (bytes[3]));
+			return(double((bytes[2] << 8) | (bytes[3])));
 		}
 
 		default:

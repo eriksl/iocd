@@ -21,12 +21,12 @@ class ControlAtmel : public Control
 
 				ControlAtmel(Controls *parent_controls,
 						int generation, int parent_id, int ordinal, string parent_path,
-						int min, int max, string unit,
+						double min, double max, string unit, int precision,
 						control_t control_type, int index)	throw(string);
 		virtual	~ControlAtmel()								throw();
 
-		int		read()					throw(string);
-		void	write(int)				throw(string);
+		double	read()					throw(string);
+		void	write(double)			throw(string);
 		int		readcounter()			throw(string);
 		int		readresetcounter()		throw(string);
 		int		readpwmmode()			throw(string);
