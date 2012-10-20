@@ -249,13 +249,23 @@ int ControlAtmel::readpwmmode() throw(string)
 		case(digital_output):
 		{
 			bytes = _query(0x70, 4);
-			return(bytes[2]);
+			mode = bytes[2];
+
+			if(mode == 4)
+				mode = 3;
+
+			return(mode);
 		}
 
 		case(pwm_output):
 		{
 			bytes = _query(0xb0, 4);
-			return(bytes[2]);
+			mode = bytes[2];
+
+			if(mode == 4)
+				mode = 3;
+
+			return(mode);
 		}
 
 		default:
