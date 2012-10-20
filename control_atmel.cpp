@@ -74,7 +74,7 @@ ControlAtmel::~ControlAtmel() throw()
 
 Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int param2, int param3, int param4) throw(string)
 {
-	stringstream			in;
+	ostringstream			in;
 	Interface::byte_array	bytes;
 
 	dlog("cmd1: %x\n", cmd);
@@ -87,16 +87,25 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	in << "w " << hex << setw(2) << setfill('0') << cmd;
 
 	if(param1 != -1)
-		in << param1 << " ";
+		in << " " << hex << setw(2) << setfill('0') << param1;
 
 	if(param2 != -1)
-		in << param2 << " ";
+		in << " " << hex << setw(2) << setfill('0') << param2;
 
 	if(param3 != -1)
-		in << param3 << " ";
+		in << " " << hex << setw(2) << setfill('0') << param3;
 
 	if(param4 != -1)
-		in << param4 << " ";
+		in << " " << hex << setw(2) << setfill('0') << param4;
+
+	try
+	{
+		bytes = _controls->device()->command(in.str());
+	}
+	catch(string e)
+	{
+		throw(string("ControlAtmel::_query: " + e));
+	}
 
 	dlog("length required: %d\n", length);
 	dlog("length actual: %d\n", bytes.size());
