@@ -3,6 +3,7 @@
 #include "control.h"
 #include "controls.h"
 #include "cppstreams.h"
+#include "syslog.h"
 
 Control::Control(Controls *parent_controls,
 				int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,

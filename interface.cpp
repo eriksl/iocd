@@ -26,7 +26,7 @@ Interface::~Interface() throw()
 
 void Interface::_lock() throw(string)
 {
-	dlog("--> LOCK\n");
+	//dlog("--> LOCK\n");
 
 	if(_mutex_valid)
 		pthread_mutex_lock(&_mutex);
@@ -36,7 +36,7 @@ void Interface::_lock() throw(string)
 
 void Interface::_unlock() throw(string)
 {
-	dlog("<-- UNLOCK\n");
+	//dlog("<-- UNLOCK\n");
 
 	if(_mutex_valid)
 		pthread_mutex_unlock(&_mutex);
