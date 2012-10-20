@@ -45,7 +45,5 @@ class Interface : public Identity
 		void			_lock()															throw(string);
 		void			_unlock()														throw(string);
 		virtual	string	_command(const string &cmd, int timeout, int chunks)			throw(string) = 0;
-
-
 };
 #endif

@@ -11,8 +11,8 @@
 #include "syslog.h"
 #include "cppstreams.h"
 
-HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port, bool multithread_in) throw(string)
-	: interfaces(interfaces_in), multithread(multithread_in)
+HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(string)
+	: _interfaces(interfaces_in)
 {
 	page_dispatcher_map["/"]				=	&HttpServer::page_dispatcher_root;
 	page_dispatcher_map["/read"]			=	&HttpServer::page_dispatcher_read;
@@ -31,60 +31,26 @@ HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port, bool multithrea
 			MHD_OPTION_NOTIFY_COMPLETED, &HttpServer::callback_request_completed, this,
 			MHD_OPTION_END);
 
-	page_dispatcher_map["/"]			=	&HttpServer::page_dispatcher_root;
-	page_dispatcher_map["/"]			=	&HttpServer::page_dispatcher_stylecss;
+	if(daemon_handle_ipv4 == 0)
+		throw(string("Cannot start httpv4 daemon"));
 
-	daemon = MHD_start_daemon(multithread_option | MHD_USE_IPv6 | MHD_USE_DEBUG,
+	daemon_handle_ipv6 = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION | MHD_USE_IPv6 | MHD_USE_DEBUG,
 			tcp_port, 0, 0, &HttpServer::access_handler_callback, this,
 			MHD_OPTION_NOTIFY_COMPLETED, &HttpServer::callback_request_completed, this,
 			MHD_OPTION_END);
 
-	if(daemon == 0)
-		throw(string("Cannot start http daemon"));
+	if(daemon_handle_ipv6 == 0)
+		throw(string("Cannot start httpv6 daemon"));
 }
 
 HttpServer::~HttpServer() throw(string)
 {
-	MHD_stop_daemon(daemon);
-	daemon = 0;
-}
+	dlog("stop HttpServer\n");
+	MHD_stop_daemon(daemon_handle_ipv6);
+	daemon_handle_ipv6 = 0;
 
-void HttpServer::poll(int timeout) throw(string)
-{
-	if(multithread)
-	{
-		if(timeout < 0)
-			for(;;)
-				sleep(65536);
-		else
-			usleep(timeout);
-	}
-	else
-	{
-		fd_set				read_fd_set, write_fd_set, except_fd_set;
-		int					max_fd = 0;
-		struct timeval		tv;
-		struct timeval *	tvp;
-
-		FD_ZERO(&read_fd_set);
-		FD_ZERO(&write_fd_set);
-		FD_ZERO(&except_fd_set);
-
-		if(MHD_get_fdset(daemon, &read_fd_set, &write_fd_set, &except_fd_set, &max_fd) == MHD_NO)
-			throw(string("error in MHD_get_fdset"));
-
-		if(timeout >= 0)
-		{
-			tv.tv_sec	= timeout / 1000000;
-			tv.tv_usec	= (timeout % 1000000);
-			tvp = &tv;
-		}
-		else
-			tvp = 0;
-
-		if(select(max_fd + 1, &read_fd_set, &write_fd_set, &except_fd_set, tvp) != 0)
-			MHD_run(daemon);
-	}
+	MHD_stop_daemon(daemon_handle_ipv4);
+	daemon_handle_ipv4 = 0;
 }
 
 string HttpServer::html_header(const string & title, int reload, string reload_url, string cssurl)

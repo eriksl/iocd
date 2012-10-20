@@ -21,9 +21,9 @@ class HttpServer
 {
 	private:
 
-		struct MHD_Daemon * daemon;
-		Interfaces *		interfaces;
-		bool				multithread;
+		struct MHD_Daemon * daemon_handle_ipv4;
+		struct MHD_Daemon * daemon_handle_ipv6;
+		Interfaces *		_interfaces;
 		static const char *	id_cookie_name;
 
 		typedef map<string, string> string_string_map;
@@ -99,9 +99,10 @@ class HttpServer
 
 	public:
 
-		HttpServer(Interfaces *, int tcp_port, bool multithread) throw(string);
+		HttpServer(Interfaces *, int tcp_port) throw(string);
 		~HttpServer() throw(string);
-		void poll(int timeout) throw(string);
+
+		static string uriencode(string) throw();
 };
 
 #endif
