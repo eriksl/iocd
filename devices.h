@@ -26,6 +26,7 @@ class Devices
 		iterator	begin()						throw();
 		iterator	end()						throw();
 		void		add(Device *)				throw();
+		Device*		find(string id)				throw(string);
 		Interface*	interface()					throw();
 
 	protected:

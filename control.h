@@ -4,6 +4,9 @@
 #include <string>
 using std::string;
 
+class Interface;
+class Devices;
+class Device;
 class Controls;
 
 #include "identity.h"
@@ -45,6 +48,11 @@ class Control : public Identity
 		bool	cancount()				const	throw();
 		bool	canpwm()				const	throw();
 		bool	isdigital()				const	throw();
+
+		Controls*	controls()					throw();
+		Device*		device()					throw();
+		Devices*	devices()					throw();
+		Interface*	interface()					throw();
 
 	protected:
 

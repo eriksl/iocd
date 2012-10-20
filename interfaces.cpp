@@ -30,6 +30,84 @@ Interfaces::iterator Interfaces::end() throw()
 	return(_interfaces.end());
 }
 
+Interface* Interfaces::find(string id) throw(string)
+{
+	Interfaces::iterator interface;
+
+	if(id.length() == 8)
+		id = id.substr(0, 2);
+
+	if(id.length() != 2)
+		throw(string("find(interface): id has invalid length"));
+
+	for(interface = begin(); interface != end(); interface++)
+		if((**interface).id().substr(0,2) == id)
+			break;
+
+	if(interface == end())
+		throw(string("find(interface): interface not found"));
+
+	return(*interface);
+}
+
+Device* Interfaces::find_device(string id) throw(string)
+{
+	Interface *interface = find(id);
+	return(interface->devices()->find(id));
+}
+
+Control* Interfaces::find_control(string id) throw(string)
+{
+	Device *device = find_device(id);
+	return(device->controls()->find(id));
+}
+
+Control* Interfaces::find_control_by_name(string id) throw(string)
+{
+	Interfaces::iterator	interface;
+	Devices::iterator		device;
+	Controls::iterator		control;
+	bool					found = false;
+
+	for(interface = _interfaces.begin(); interface != _interfaces.end(); interface++)
+	{
+		for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
+		{
+			for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
+			{
+				if((**control).shortname() == id)
+				{
+					found = true;
+					break;
+				}
+
+				if((**control).longname() == id)
+				{
+					found = true;
+					break;
+				}
+
+				if((**control).path() == id)
+				{
+					found = true;
+					break;
+				}
+
+				if((**control).id() == id)
+				{
+					found = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if(!found)
+		throw(string("control not found"));
+
+	return(*control);
+}
+
 void Interfaces::_probe() throw()
 {
 	_probe_usb();

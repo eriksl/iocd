@@ -20,6 +20,7 @@ class Controls
 		iterator	begin()				throw();
 		iterator	end()				throw();
 		void		add(Control *)		throw();
+		Control *	find(string id)		throw(string);
 		Device*		device()			throw();
 
 	protected:

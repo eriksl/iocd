@@ -32,6 +32,26 @@ void Controls::add(Control* new_control) throw()
 	_controls.push_back(new_control);
 }
 
+Control* Controls::find(string id) throw(string)
+{
+	Controls::iterator control;
+
+	if(id.length() == 8)
+		id = id.substr(4,2);
+
+	if(id.length() != 2)
+		throw(string("find(control): id has invalid length"));
+
+	for(control = begin(); control != end(); control++)
+		if((**control).id().substr(4,2) == id)
+			break;
+
+	if(control == end())
+		throw(string("find(control): control not found"));
+
+	return(*control);
+}
+
 Device *Controls::device() throw()
 {
 	return(_device);
