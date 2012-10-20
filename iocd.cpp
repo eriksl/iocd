@@ -145,7 +145,7 @@ int main(int argc, char ** argv)
 
 		delete httpserver;
 	}
-	catch(const string & error)
+	catch(string error)
 	{
 		log_exception(error);
 		exit(-1);

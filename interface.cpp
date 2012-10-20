@@ -54,7 +54,7 @@ Devices* Interface::devices() throw()
 	return(&_devices);
 }
 
-string Interface::command(string cmd, int timeout, int chunks) throw()
+string Interface::command(string cmd, int timeout, int chunks) throw(string)
 {
 	string result;
 

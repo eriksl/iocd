@@ -27,7 +27,7 @@ class Interface : public Identity
 		Interfaces *	interfaces()											const	throw();
 		Devices *		devices()														throw();
 
-		string			command(string cmd, int timeout = 200, int chunks = 1)			throw();
+		string			command(string cmd, int timeout = 200, int chunks = 1)			throw(string);
 		static int		parse_bytes(string str, byte_array & values)					throw();
 		static int		timespec_diff(timespec from, timespec to)						throw();
 

@@ -74,7 +74,6 @@ Control* Interfaces::find_control_by_name(string id) throw(string)
 	Interfaces::iterator	interface;
 	Devices::iterator		device;
 	Controls::iterator		control;
-	bool					found = false;
 
 	for(interface = _interfaces.begin(); interface != _interfaces.end(); interface++)
 	{
@@ -83,36 +82,23 @@ Control* Interfaces::find_control_by_name(string id) throw(string)
 			for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
 			{
 				if((**control).shortname() == id)
-				{
-					found = true;
-					break;
-				}
+					return(*control);
 
 				if((**control).longname() == id)
-				{
-					found = true;
-					break;
-				}
+					return(*control);
 
 				if((**control).path() == id)
-				{
-					found = true;
-					break;
-				}
+					return(*control);
 
 				if((**control).id() == id)
-				{
-					found = true;
-					break;
-				}
+					return(*control);
 			}
 		}
 	}
 
-	if(!found)
-		throw(string("control not found"));
+	throw(string("control not found"));
 
-	return(*control);
+	return(0); // never reached
 }
 
 void Interfaces::_probe() throw()

@@ -171,7 +171,7 @@ bool DeviceAtmel::_probe() throw()
 			try
 			{
 				control = new ControlAtmel(&_controls,
-						2, _id, _enumerator, path(),
+						_generation + 1, _id, _enumerator, path(),
 						min, max, "", 0, ControlAtmel::digital_output, ix);
 			}
 			catch(string(error))

@@ -176,12 +176,12 @@ void Control::writepwmmode(int) throw(string)
 
 string Control::read_string() throw(string)
 {
-	return(_float_to_string(read()));
+	return(_float_to_string(read(), _precision));
 }
 
 string Control::readwrite_string(double value) throw(string)
 {
-	return(_float_to_string(readwrite(value)));
+	return(_float_to_string(readwrite(value), _precision));
 }
 
 string Control::readcounter_string() throw(string)
