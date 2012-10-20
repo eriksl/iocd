@@ -1,5 +1,6 @@
 #include "interface_elv.h"
 #include "device_atmel.h"
+#include "device_tmp275.h"
 #include "devices.h"
 #include "syslog.h"
 
@@ -233,41 +234,69 @@ string InterfaceELV::_command(const string &cmd_in, int timeout, int chunks) thr
 
 void InterfaceELV::_probe() throw()
 {
-	_probe_atmel();
+	_probe_atmel(0x02);
+	_probe_atmel(0x03);
+	_probe_tmp275(0x49);
 }
 
-void InterfaceELV::_probe_atmel() throw()
+void InterfaceELV::_probe_atmel(int address) throw()
 {
-	int				address;
 	DeviceAtmel		*device;
 	string 			error;
 
-	for(address = 0x02; address < 0x04; address++)
+	device = 0;
+	dlog("probing atmel@0x%02x\n", address);
+
+	try
 	{
-		device = 0;
-		dlog("probing atmel@0x%02x\n", address);
-
-		try
-		{
-			device = new DeviceAtmel(&_devices, _generation + 1, _id, _enumerator, path(), address);
-		}
-		catch(string e)
-		{
-			error = e;
-		}
-		catch(...)
-		{
-			error = "<unspecified error";
-		}
-
-		if(device)
-		{
-			dlog("atmel@0x%02x found: %s\n", address, device->shortname().c_str());
-			_devices.add(device);
-		}
-		else
-		{
-			dlog("atmel@0x%02x not found: %s\n", address, error.c_str());
-		}
+		device = new DeviceAtmel(&_devices, _generation + 1, _id, _enumerator, path(), address);
 	}
+	catch(string e)
+	{
+		error = e;
+	}
+	catch(...)
+	{
+		error = "<unspecified error";
+	}
+
+	if(device)
+	{
+		dlog("atmel@0x%02x found: %s\n", address, device->shortname().c_str());
+		_enumerator++;
+		_devices.add(device);
+	}
+	else
+		dlog("atmel@0x%02x not found: %s\n", address, error.c_str());
+}
+
+void InterfaceELV::_probe_tmp275(int address) throw()
+{
+	DeviceTMP275	*device;
+	string 			error;
+
+	device = 0;
+	dlog("probing tmp275@0x%02x\n", address);
+
+	try
+	{
+		device = new DeviceTMP275(&_devices, _generation + 1, _id, _enumerator, path(), address);
+	}
+	catch(string e)
+	{
+		error = e;
+	}
+	catch(...)
+	{
+		error = "<unspecified error";
+	}
+
+	if(device)
+	{
+		dlog("tmp275@0x%02x found: %s\n", address, device->shortname().c_str());
+		_devices.add(device);
+		_enumerator++;
+	}
+	else
+		dlog("%s\n", error.c_str());
 }

@@ -19,7 +19,8 @@ class InterfaceELV : public Interface
 
 		void	_open(string path)			throw(string);
 		void	_probe()					throw();
-		void	_probe_atmel()				throw();
+		void	_probe_atmel(int address)	throw();
+		void	_probe_tmp275(int address)	throw();
 };
 
 #endif
