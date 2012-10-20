@@ -17,11 +17,13 @@ using std::string;
 #include "controls.h"
 #include "control.h"
 #include "syslog.h"
+#include "http_server.h"
 
 static bool quit = false;
 
 static void sigint(int)
 {
+	dlog("SIGINT\n");
 	signal(SIGINT, SIG_DFL);
 	quit = true;
 }
@@ -43,7 +45,7 @@ int main(int argc, char ** argv)
 {
 	int			opt;
 	bool		foreground	= false;
-	bool		oneshot		= true;
+	bool		oneshot		= false;
 
 	try
 	{
@@ -85,8 +87,7 @@ int main(int argc, char ** argv)
 
 		for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
 		{
-			vlog("interface[%s]: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
-					(**interface).generation().c_str(),
+			vlog("interface: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
 					(**interface).longname().c_str(),
 					(**interface).shortname().c_str(),
 					(**interface).path().c_str(),
@@ -96,8 +97,7 @@ int main(int argc, char ** argv)
 
 			for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
 			{
-				vlog("    device[%s]: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
-						(**device).generation().c_str(),
+				vlog("    device: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
 						(**device).longname().c_str(),
 						(**device).shortname().c_str(),
 						(**device).path().c_str(),
@@ -107,18 +107,17 @@ int main(int argc, char ** argv)
 
 				for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
 				{
-					vlog("            control[%s]: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s} (%d-%d%s) (%s) (value = %d) (counter = %d)\n",
-							(**control).generation().c_str(),
+					vlog("            control: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s} (min:%s-max:%s unit:%s) (props:%s) (value = %s) (counter = %s)\n",
 							(**control).longname().c_str(),
 							(**control).shortname().c_str(),
 							(**control).path().c_str(),
 							(**control).ordinal().c_str(),
 							(**control).parent_id().c_str(),
 							(**control).id().c_str(),
-							(**control).min(), (**control).max(), (**control).unit().c_str(),
+							(**control).min_string().c_str(), (**control).max_string().c_str(), (**control).unit().c_str(),
 							(**control).properties().c_str(),
-							(**control).canread()  ? (**control).read() : -1,
-							(**control).cancount() ? (**control).readresetcounter() : -1);
+							(**control).canread()  ? (**control).read_string().c_str() : "",
+							(**control).cancount() ? (**control).readresetcounter_string().c_str() : "");
 				}
 			}
 		}
@@ -138,7 +137,13 @@ int main(int argc, char ** argv)
 
 		setresuid(65534, 65534, 65534);
 
-		//HttpServer * http_server = new HttpServer(device, 28000, true);
+		HttpServer *httpserver = new HttpServer(&interfaces, 28000);
+
+		dlog("before pause\n");
+		pause();
+		dlog("after pause\n");
+
+		delete httpserver;
 	}
 	catch(const string & error)
 	{
@@ -157,7 +162,7 @@ int main(int argc, char ** argv)
 	}
 
 	if(quit)
-		vlog("interrupt\n");
+		dlog("interrupt\n");
 
 	return(0);
 }

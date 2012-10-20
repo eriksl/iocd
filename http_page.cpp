@@ -4,15 +4,17 @@
 #include <pthread.h>
 #include <sys/socket.h>
 
-#include <sstream>
-#include <iomanip>
-using namespace std;
-
 #include <boost/lexical_cast.hpp>
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
 
 #include "http_server.h"
+#include "interfaces.h"
+#include "interface.h"
+#include "devices.h"
+#include "device.h"
+#include "controls.h"
+#include "control.h"
 #include "syslog.h"
 #include "cppstreams.h"
 

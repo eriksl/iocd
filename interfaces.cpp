@@ -1,6 +1,9 @@
-#include "interfaces.h"
 #include "interface.h"
+#include "controls.h"
+#include "control.h"
+#include "interfaces.h"
 #include "interface_elv.h"
+#include "device.h"
 #include "cppstreams.h"
 #include "syslog.h"
 

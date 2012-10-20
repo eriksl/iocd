@@ -242,7 +242,8 @@ int ControlAtmel::readresetcounter() throw(string)
 
 int ControlAtmel::readpwmmode() throw(string)
 {
-	Interface::byte_array bytes;
+	Interface::byte_array	bytes;
+	int						mode;
 
 	switch(_control_type)
 	{
