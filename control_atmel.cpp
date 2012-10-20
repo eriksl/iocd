@@ -160,8 +160,13 @@ double ControlAtmel::read() throw(string)
 	return(-1);
 }
 
-void ControlAtmel::write(int value) throw(string)
+void ControlAtmel::write(double value_in) throw(string)
 {
+	int value = int(value_in);
+
+	if((value < _min) || (value > _max))
+		throw(string("write control: value out of range"));
+
 	switch(_control_type)
 	{
 		case(digital_output):
@@ -264,6 +269,9 @@ int ControlAtmel::readpwmmode() throw(string)
 
 void ControlAtmel::writepwmmode(int value) throw(string)
 {
+	if((value < 0) || (value > 3))
+		throw(string("write control: pwm mode out of range"));
+
 	switch(_control_type)
 	{
 		case(digital_output):
