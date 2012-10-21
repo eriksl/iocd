@@ -9,9 +9,10 @@
 
 #include "http_server.h"
 #include "syslog.h"
+#include "exception.h"
 #include "cppstreams.h"
 
-HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(string)
+HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(exception)
 	: _interfaces(interfaces_in)
 {
 	page_dispatcher_map["/"]				=	&HttpServer::page_dispatcher_root;
@@ -22,6 +23,8 @@ HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(string)
 	page_dispatcher_map["/readpwmmode"]		=	&HttpServer::page_dispatcher_readpwmmode;
 	page_dispatcher_map["/writepwmmode"]	=	&HttpServer::page_dispatcher_writepwmmode;
 	page_dispatcher_map["/info"]			=	&HttpServer::page_dispatcher_info;
+	page_dispatcher_map["/restart"]			=	&HttpServer::page_dispatcher_restart;
+	page_dispatcher_map["/quit"]			=	&HttpServer::page_dispatcher_quit;
 	page_dispatcher_map["/style.css"]		=	&HttpServer::page_dispatcher_stylecss;
 
 	dlog("start HttpServer\n");
@@ -32,7 +35,7 @@ HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(string)
 			MHD_OPTION_END);
 
 	if(daemon_handle_ipv4 == 0)
-		throw(string("Cannot start httpv4 daemon"));
+		throw(minor_exception("Cannot start httpv4 daemon"));
 
 	daemon_handle_ipv6 = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION | MHD_USE_IPv6 | MHD_USE_DEBUG,
 			tcp_port, 0, 0, &HttpServer::access_handler_callback, this,
@@ -40,10 +43,10 @@ HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(string)
 			MHD_OPTION_END);
 
 	if(daemon_handle_ipv6 == 0)
-		throw(string("Cannot start httpv6 daemon"));
+		throw(minor_exception("Cannot start httpv6 daemon"));
 }
 
-HttpServer::~HttpServer() throw(string)
+HttpServer::~HttpServer() throw()
 {
 	dlog("stop HttpServer\n");
 	MHD_stop_daemon(daemon_handle_ipv6);
@@ -91,7 +94,7 @@ string HttpServer::html_footer()
 
 int HttpServer::send_raw(MHD_Connection * connection, int http_code,
 			const string & data, const string & data_mime,
-			const string & cookie_id, const string & cookie_value) const throw(string)
+			const string & cookie_id, const string & cookie_value) const throw(exception)
 {
 	int						rv;
 	struct MHD_Response	*	response;
@@ -116,7 +119,7 @@ int HttpServer::send_raw(MHD_Connection * connection, int http_code,
 
 int HttpServer::send_html(MHD_Connection * connection, const string & title, int http_code,
 			const string & message, int reload, const string & reload_url,
-			const string & cookie_id, const string & cookie_value) const throw(string)
+			const string & cookie_id, const string & cookie_value) const throw(exception)
 {
 	string					data;
 
@@ -127,7 +130,7 @@ int HttpServer::send_html(MHD_Connection * connection, const string & title, int
 	return(send_raw(connection, http_code, data, "text/html", cookie_id, cookie_value));
 }
 
-int HttpServer::http_error(MHD_Connection * connection, int http_code, const string & message) const throw(string)
+int HttpServer::http_error(MHD_Connection * connection, int http_code, const string & message) const throw(exception)
 {
 	return(send_html(connection, "ERROR", http_code, string("<p>") + message + "</p>\n"));
 }
@@ -169,7 +172,7 @@ int HttpServer::access_handler_callback(void * void_http_server,
 
 int HttpServer::access_handler(struct MHD_Connection * connection,
 		const string & url, const string & method, const string &,
-		ConnectionData * con_cls, size_t *, const char *) const
+		ConnectionData * con_cls, size_t *, const char *) const throw()
 {
 	PageHandler::map_t::const_iterator	it;
 	PageHandler::dispatcher_function_t	fn;
@@ -193,7 +196,17 @@ int HttpServer::access_handler(struct MHD_Connection * connection,
 			variables.data.insert(post_arguments.data.begin(), post_arguments.data.end());
 		}
 
-		return((this->*fn)(connection, method, con_cls, variables));
+		try
+		{
+			return((this->*fn)(connection, method, con_cls, variables));
+		}
+		catch(major_exception e)
+		{
+			vlog("http_server: receive major exception: %s\n", e.message.c_str());
+		}
+
+		_interfaces->signal(Interfaces::signal_major_error);
+		return(http_error(connection, MHD_HTTP_NOT_FOUND, string("ERROR: URI ") + url + " caused major error, restart daemon"));
 	}
 
 	return(http_error(connection, MHD_HTTP_NOT_FOUND, string("ERROR: URI ") + url + " not found"));

@@ -9,15 +9,15 @@ class InterfaceELV : public Interface
 
 		InterfaceELV(Interfaces *parent_interfaces,
 				int generation, int parent_id, int ordinal,
-				string parent_path, string path)						throw(string);
+				string parent_path, string path)						throw(exception);
 
 	protected:
 
-		string	_command(const string &cmd, int timeout, int chunks)	throw(string);
+		string	_command(const string &cmd, int timeout, int chunks)	throw(exception);
 
 	private:
 
-		void	_open(string path)			throw(string);
+		void	_open(string path)			throw(exception);
 		void	_probe()					throw();
 		void	_probe_atmel(int address)	throw();
 		void	_probe_tmp275(int address)	throw();

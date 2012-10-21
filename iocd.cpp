@@ -1,15 +1,4 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <signal.h>
-
-#include "iocd.h"
-
-#include <string>
-using std::string;
-
+#include "http_server.h"
 #include "interfaces.h"
 #include "interface.h"
 #include "devices.h"
@@ -17,20 +6,22 @@ using std::string;
 #include "controls.h"
 #include "control.h"
 #include "syslog.h"
-#include "http_server.h"
+#include "exception.h"
+#include "iocd.h"
 
-static bool quit = false;
+#include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
 
-static void sigint(int)
+#include <string>
+using std::string;
+
+static void log_exception(string type, string error)
 {
-	dlog("SIGINT\n");
-	signal(SIGINT, SIG_DFL);
-	quit = true;
-}
-
-static void log_exception(const string & error)
-{
-	string errormessage = string("error caught, message = ") + error;
+	string errormessage = string("error caught, type = ") +  type + ", message = " + error;
 
 	if(errno != 0)
 	{
@@ -43,126 +34,173 @@ static void log_exception(const string & error)
 
 int main(int argc, char ** argv)
 {
-	int			opt;
-	bool		foreground	= false;
-	bool		oneshot		= false;
+	int						opt;
+	bool					foreground	= false;
+	bool					oneshot		= false;
+	size_t					interfaces_required = 0;
+	Interfaces::signal_t	waitval;
 
-	try
+	while((opt = getopt(argc, argv, "dfor:")) != -1)
 	{
-		while((opt = getopt(argc, argv, "dfo")) != -1)
+		switch(opt)
 		{
-			switch(opt)
+			case('d'):
 			{
-				case('d'):
-				{
-					debug = true;
-					foreground = true;
-					break;
-				}
+				debug = true;
+				foreground = true;
+				break;
+			}
 
-				case('f'):
-				{
-					foreground = true;
-					break;
-				}
+			case('f'):
+			{
+				foreground = true;
+				break;
+			}
 
-				case('o'):
-				{
-					oneshot = true;
-					break;
-				}
+			case('o'):
+			{
+				oneshot = true;
+				break;
+			}
 
-				default:
-				{
-					errno = 0;
-					throw(string("\nusage: iocd [-d] [-f] [-o]\n-f = foreground, -d = debug, -o = oneshot mode"));
-				}
+			case('r'):
+			{
+				interfaces_required = strtoul(optarg, 0, 10);
+				break;
+			}
+
+			default:
+			{
+				errno = 0;
+				fprintf(stderr, "usage: iocd [-d] [-f] [-o] [-r interfaces]\n"
+								"-f = foreground, -d = debug, -o = oneshot mode,\n"
+								"-r # = number of interfaces required to be present\n");
 			}
 		}
+	}
 
-		Interfaces				interfaces;
-		Interfaces::iterator	interface;
-		Devices::iterator		device;
-		Controls::iterator		control;
+	if(!foreground)
+	{
+		isdaemon = true;
+		daemon(0, 0);
+	}
+	else
+		isdaemon = false;
 
-		for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
+	setresuid(65534, 65534, 65534);
+
+	for(;;)
+	{
+		try
 		{
-			vlog("interface: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
-					(**interface).longname().c_str(),
-					(**interface).shortname().c_str(),
-					(**interface).path().c_str(),
-					(**interface).ordinal().c_str(),
-					(**interface).parent_id().c_str(),
-					(**interface).id().c_str());
+			Interfaces				interfaces;
+			Interfaces::iterator	interface;
+			Devices::iterator		device;
+			Controls::iterator		control;
 
-			for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
+			for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
 			{
-				vlog("    device: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
-						(**device).longname().c_str(),
-						(**device).shortname().c_str(),
-						(**device).path().c_str(),
-						(**device).ordinal().c_str(),
-						(**device).parent_id().c_str(),
-						(**device).id().c_str());
+				vlog("interface: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
+						(**interface).longname().c_str(),
+						(**interface).shortname().c_str(),
+						(**interface).path().c_str(),
+						(**interface).ordinal().c_str(),
+						(**interface).parent_id().c_str(),
+						(**interface).id().c_str());
 
-				for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
+				for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
 				{
-					vlog("            control: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s} (min:%s-max:%s unit:%s) (props:%s) (value = %s) (counter = %s)\n",
-							(**control).longname().c_str(),
-							(**control).shortname().c_str(),
-							(**control).path().c_str(),
-							(**control).ordinal().c_str(),
-							(**control).parent_id().c_str(),
-							(**control).id().c_str(),
-							(**control).min_string().c_str(), (**control).max_string().c_str(), (**control).unit().c_str(),
-							(**control).properties().c_str(),
-							(**control).canread()  ? (**control).read_string().c_str() : "",
-							(**control).cancount() ? (**control).readresetcounter_string().c_str() : "");
+					vlog("    device: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
+							(**device).longname().c_str(),
+							(**device).shortname().c_str(),
+							(**device).path().c_str(),
+							(**device).ordinal().c_str(),
+							(**device).parent_id().c_str(),
+							(**device).id().c_str());
+
+					for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
+					{
+						vlog("            control: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s} (min:%s-max:%s unit:%s) (props:%s) (value = %s) (counter = %s)\n",
+								(**control).longname().c_str(),
+								(**control).shortname().c_str(),
+								(**control).path().c_str(),
+								(**control).ordinal().c_str(),
+								(**control).parent_id().c_str(),
+								(**control).id().c_str(),
+								(**control).min_string().c_str(), (**control).max_string().c_str(), (**control).unit().c_str(),
+								(**control).properties().c_str(),
+								(**control).canread()  ? (**control).read_string().c_str() : "",
+								(**control).cancount() ? (**control).readresetcounter_string().c_str() : "");
+					}
 				}
 			}
+
+			if(oneshot)
+				exit(0);
+
+			if(interfaces.count() < interfaces_required)
+			{
+				vlog("insufficient number of interfaces detected\n");
+				signal(SIGINT, SIG_DFL);
+				signal(SIGQUIT, SIG_DFL);
+				sleep(1);
+				continue;
+			}
+
+			HttpServer httpserver(&interfaces, 28000);
+
+			dlog("before wait\n");
+			waitval = interfaces.wait();
+			dlog("wait returned %d\n", waitval);
+
+			if(waitval == Interfaces::signal_user_quit)
+				throw(fatal_exception("quit by user request"));
+
+			if(waitval == Interfaces::signal_user_restart)
+				throw(major_exception("restart by user request"));
+
+			if(waitval == Interfaces::signal_major_error)
+				throw(major_exception("restart by major error"));
+
+			if(waitval == Interfaces::signal_user_keyint)
+				throw(fatal_exception("quit by user interrupt"));
+
+			if(waitval == Interfaces::signal_user_keyquit)
+				throw(major_exception("reload by user interrupt"));
 		}
-
-		if(oneshot)
-			exit(0);
-
-		signal(SIGINT, sigint);
-
-		if(!foreground)
+		catch(minor_exception e)
 		{
-			isdaemon = true;
-			daemon(0, 0);
+			log_exception("minor", e.message);
 		}
-		else
-			isdaemon = false;
-
-		setresuid(65534, 65534, 65534);
-
-		HttpServer *httpserver = new HttpServer(&interfaces, 28000);
-
-		dlog("before pause\n");
-		pause();
-		dlog("after pause\n");
-
-		delete httpserver;
+		catch(major_exception e)
+		{
+			log_exception("major", e.message);
+		}
+		catch(fatal_exception e)
+		{
+			log_exception("fatal", e.message);
+			break;
+		}
+		catch(exception e)
+		{
+			log_exception("generic", e.what());
+		}
+		catch(string e)
+		{
+			log_exception("string", e);
+		}
+		catch(const char * e)
+		{
+			log_exception("charp", e);
+		}
+		catch(...)
+		{
+			log_exception("unknown", "");
+			break;
+		}
 	}
-	catch(string error)
-	{
-		log_exception(error);
-		exit(-1);
-	}
-	catch(const char * error)
-	{
-		log_exception(string(error));
-		exit(-1);
-	}
-	catch(...)
-	{
-		log_exception(string("caught unknown error"));
-		exit(-1);
-	}
 
-	if(quit)
-		dlog("interrupt\n");
+	dlog("exit\n");
 
 	return(0);
 }

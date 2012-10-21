@@ -8,7 +8,7 @@
 ControlAtmel::ControlAtmel(Controls *parent_controls,
 			int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
 			double min_in, double max_in, string unit_in, int precision_in,
-			control_t control_type_in, int index_in) throw(string)
+			control_t control_type_in, int index_in) throw(exception)
 	:
 		Control(parent_controls,
 				generation_in, parent_id_in, ordinal_in, parent_path_in,
@@ -55,7 +55,7 @@ ControlAtmel::ControlAtmel(Controls *parent_controls,
 
 		default:
 		{
-			throw(string("ControlAtmel::ControlAtmel: invalid control type"));
+			throw(minor_exception("ControlAtmel::ControlAtmel: invalid control type"));
 		}
 	}
 
@@ -72,7 +72,7 @@ ControlAtmel::~ControlAtmel() throw()
 {
 }
 
-Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int param2, int param3, int param4) throw(string)
+Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int param2, int param3, int param4) throw(exception)
 {
 	ostringstream			in;
 	Interface::byte_array	bytes;
@@ -102,21 +102,22 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	{
 		bytes = _controls->device()->command(in.str());
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		throw(string("ControlAtmel::_query: " + e));
+		dlog("minor exception: %s\n", e.message.c_str());
+		throw(minor_exception(string("ControlAtmel::_query: ") + e.message));
 	}
 
 	dlog("length required: %d\n", length);
 	dlog("length actual: %d\n", bytes.size());
 
 	if(bytes.size() != (size_t)length)
-		throw(string("ControlAtmel::_query: invalid result length"));
+		throw(minor_exception("ControlAtmel::_query: invalid result length"));
 
 	return(bytes);
 }
 
-double ControlAtmel::read() throw(string)
+double ControlAtmel::read() throw(exception)
 {
 	Interface::byte_array bytes;
 
@@ -153,19 +154,19 @@ double ControlAtmel::read() throw(string)
 
 		default:
 		{
-			throw(string("ControlAtmel::read: invalid operation for control"));
+			throw(minor_exception("ControlAtmel::read: invalid operation for control"));
 		}
 	}
 
 	return(-1);
 }
 
-void ControlAtmel::write(double value_in) throw(string)
+void ControlAtmel::write(double value_in) throw(exception)
 {
 	int value = int(value_in);
 
 	if((value < _min) || (value > _max))
-		throw(string("write control: value out of range"));
+		throw(minor_exception("write control: value out of range"));
 
 	switch(_control_type)
 	{
@@ -185,12 +186,12 @@ void ControlAtmel::write(double value_in) throw(string)
 
 		default:
 		{
-			throw(string("ControlAtmel::write: invalid operation for control"));
+			throw(minor_exception("ControlAtmel::write: invalid operation for control"));
 		}
 	}
 }
 
-int ControlAtmel::readcounter() throw(string)
+int ControlAtmel::readcounter() throw(exception)
 {
 	Interface::byte_array bytes;
 
@@ -208,14 +209,14 @@ int ControlAtmel::readcounter() throw(string)
 
 		default:
 		{
-			throw(string("ControlAtmel::readcounter: invalid operation for control"));
+			throw(minor_exception("ControlAtmel::readcounter: invalid operation for control"));
 		}
 	}
 	
 	return(-1);
 }
 
-int ControlAtmel::readresetcounter() throw(string)
+int ControlAtmel::readresetcounter() throw(exception)
 {
 	Interface::byte_array bytes;
 
@@ -233,14 +234,14 @@ int ControlAtmel::readresetcounter() throw(string)
 
 		default:
 		{
-			throw(string("ControlAtmel::readresetcounter: invalid operation for control"));
+			throw(minor_exception("ControlAtmel::readresetcounter: invalid operation for control"));
 		}
 	}
 	
 	return(-1);
 }
 
-int ControlAtmel::readpwmmode() throw(string)
+int ControlAtmel::readpwmmode() throw(exception)
 {
 	Interface::byte_array	bytes;
 	int						mode;
@@ -278,10 +279,10 @@ int ControlAtmel::readpwmmode() throw(string)
 	return(-1);
 }
 
-void ControlAtmel::writepwmmode(int value) throw(string)
+void ControlAtmel::writepwmmode(int value) throw(exception)
 {
 	if((value < 0) || (value > 3))
-		throw(string("write control: pwm mode out of range"));
+		throw(minor_exception("write control: pwm mode out of range"));
 
 	switch(_control_type)
 	{
@@ -299,12 +300,12 @@ void ControlAtmel::writepwmmode(int value) throw(string)
 
 		default:
 		{
-			throw(string("ControlAtmel::writepwmmode: invalid operation for control"));
+			throw(minor_exception("ControlAtmel::writepwmmode: invalid operation for control"));
 		}
 	}
 }
 
-string ControlAtmel::readpwmmode_string() throw(string)
+string ControlAtmel::readpwmmode_string() throw(exception)
 {
 	int mode = readpwmmode();
 

@@ -7,7 +7,7 @@
 
 Control::Control(Controls *parent_controls,
 				int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
-				double min_in, double max_in, string unit_in, int precision_in) throw(string)
+				double min_in, double max_in, string unit_in, int precision_in) throw(exception)
 	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
 			_controls(parent_controls),
 			_min(min_in), _max(max_in), _unit(unit_in), _precision(precision_in)
@@ -138,64 +138,64 @@ Interface* Control::interface() throw()
 	return(devices()->interface());
 }
 
-double Control::read() throw(string)
+double Control::read() throw(exception)
 {
-	throw(string("control does not implement read"));
+	throw(minor_exception("control does not implement read"));
 }
 
-void Control::write(double) throw(string)
+void Control::write(double) throw(exception)
 {
-	throw(string("control does not implement write"));
+	throw(minor_exception("control does not implement write"));
 }
 
-double Control::readwrite(double newvalue) throw(string)
+double Control::readwrite(double newvalue) throw(exception)
 {
 	double oldvalue = this->read();
 	this->write(newvalue);
 	return(oldvalue);
 }
 
-int Control::readcounter() throw(string)
+int Control::readcounter() throw(exception)
 {
-	throw(string("control does not implement readcounter"));
+	throw(minor_exception("control does not implement readcounter"));
 }
 
-int Control::readresetcounter() throw(string)
+int Control::readresetcounter() throw(exception)
 {
-	throw(string("control does not implement readresetcounter"));
+	throw(minor_exception("control does not implement readresetcounter"));
 }
 
-int Control::readpwmmode() throw(string)
+int Control::readpwmmode() throw(exception)
 {
-	throw(string("control does not implement readpwmmode"));
+	throw(minor_exception("control does not implement readpwmmode"));
 }
 
-void Control::writepwmmode(int) throw(string)
+void Control::writepwmmode(int) throw(exception)
 {
-	throw(string("control does not implement writepwmmode"));
+	throw(minor_exception("control does not implement writepwmmode"));
 }
 
-string Control::read_string() throw(string)
+string Control::read_string() throw(exception)
 {
 	return(_float_to_string(read(), _precision));
 }
 
-string Control::readwrite_string(double value) throw(string)
+string Control::readwrite_string(double value) throw(exception)
 {
 	return(_float_to_string(readwrite(value), _precision));
 }
 
-string Control::readcounter_string() throw(string)
+string Control::readcounter_string() throw(exception)
 {
 	return(_int_to_string(readcounter()));
 }
 
-string Control::readresetcounter_string() throw(string)
+string Control::readresetcounter_string() throw(exception)
 {
 	return(_int_to_string(readresetcounter()));
 }
 
-string Control::readpwmmode_string() throw(string)
+string Control::readpwmmode_string() throw(exception)
 {
 	return(_int_to_string(readpwmmode()));
 }

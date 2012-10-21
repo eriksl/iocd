@@ -4,6 +4,7 @@
 #include "interface.h"
 #include "identity.h"
 #include "controls.h"
+#include "exception.h"
 
 #include <string>
 using std::string;
@@ -16,10 +17,10 @@ class Device : public Identity
 
 				Device(Devices *parent,
 						int generation, int parent_id, int ordinal,
-						string parent_path)						throw(string);
+						string parent_path)						throw(exception);
 		virtual	~Device()										throw();
 		virtual Interface::byte_array command(string cmd,
-				int timeout = 200, int chunks = 1)		const	throw(string) = 0;
+				int timeout = 200, int chunks = 1)		const	throw(exception) = 0;
 
 		Devices *	devices()									throw();
 		Controls *	controls()									throw();

@@ -14,6 +14,7 @@ using std::vector;
 
 #include "devices.h"
 #include "identity.h"
+#include "exception.h"
 
 class Interface : public Identity
 {
@@ -21,13 +22,13 @@ class Interface : public Identity
 		typedef vector<uint8_t> byte_array;
 
 				Interface(Interfaces *parent_interfaces, int generation,
-						int parent_id, int ordinal, string parent_path, string path)	throw(string);
+						int parent_id, int ordinal, string parent_path, string path)	throw(exception);
 		virtual	~Interface()															throw();
 
 		Interfaces *	interfaces()											const	throw();
 		Devices *		devices()														throw();
 
-		string			command(string cmd, int timeout = 200, int chunks = 1)			throw(string);
+		string			command(string cmd, int timeout = 200, int chunks = 1)			throw(exception);
 		static int		parse_bytes(string str, byte_array & values)					throw();
 		static int		timespec_diff(timespec from, timespec to)						throw();
 
@@ -42,8 +43,8 @@ class Interface : public Identity
 
 		pthread_mutex_t	_mutex;
 		bool			_mutex_valid;
-		void			_lock()															throw(string);
-		void			_unlock()														throw(string);
-		virtual	string	_command(const string &cmd, int timeout, int chunks)			throw(string) = 0;
+		void			_lock()															throw(exception);
+		void			_unlock()														throw(exception);
+		virtual	string	_command(const string &cmd, int timeout, int chunks)			throw(exception) = 0;
 };
 #endif

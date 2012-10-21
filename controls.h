@@ -4,6 +4,8 @@
 #include <vector>
 using std::vector;
 
+#include "exception.h"
+
 class Device;
 class Control;
 
@@ -20,7 +22,7 @@ class Controls
 		iterator	begin()				throw();
 		iterator	end()				throw();
 		void		add(Control *)		throw();
-		Control *	find(string id)		throw(string);
+		Control *	find(string id)		throw(exception);
 		Device*		device()			throw();
 
 	protected:

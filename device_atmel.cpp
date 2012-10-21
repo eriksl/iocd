@@ -14,7 +14,7 @@
 
 DeviceAtmel::DeviceAtmel(Devices *parent_devices,
 			int generation_in, int parent_id_in, int ordinal_in,
-			string parent_path_in, int address) throw(string)
+			string parent_path_in, int address) throw(exception)
 	:
 		Device(parent_devices, generation_in, parent_id_in, ordinal_in, parent_path_in),
 		_address(address)
@@ -24,7 +24,7 @@ DeviceAtmel::DeviceAtmel(Devices *parent_devices,
 	_set_shortname(conv.str());
 
 	if(!_probe())
-		throw(string("DeviceAtmel::DeviceAtmel: no device found at ") + _shortname);
+		throw(minor_exception(string("DeviceAtmel::DeviceAtmel: no device found at ") + _shortname));
 
 	conv.str("");
 	conv << "Atmel " << _modelname << "_" << _version << "." << _revision <<
@@ -36,7 +36,7 @@ DeviceAtmel::~DeviceAtmel() throw()
 {
 }
 
-Interface::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(string)
+Interface::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(exception)
 {
 	stringstream			in;
 	Interface::byte_array	out;
@@ -47,10 +47,10 @@ Interface::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(string)
 	out = command(in.str());
 
 	if(out.size() != 8)
-		throw(string("DeviceAtmel::getcontrol: cmd read error"));
+		throw(minor_exception("DeviceAtmel::getcontrol: cmd read error"));
 
 	if(out[1] != 0x07)
-		throw(string("DeviceAtmel::getcontrol: device returns error code"));
+		throw(minor_exception("DeviceAtmel::getcontrol: device returns error code"));
 
 	return(out);
 }
@@ -67,18 +67,18 @@ bool DeviceAtmel::_probe() throw()
 		in = command("w 00");
 
 		if(in.size() != 24)
-			throw(string("DeviceAtmel::_probe: invalid length"));
+			throw(minor_exception("DeviceAtmel::_probe: invalid length"));
 
 		if((in[1] != 0x00))
-			throw(string("DeviceAtmel::_proble: device returns error code"));
+			throw(minor_exception("DeviceAtmel::_proble: device returns error code"));
 
 		if((in[2] != 0x4a) || (in[3] != 0xfb))
-			throw(string("device does not identify as atmel"));
+			throw(minor_exception("device does not identify as atmel"));
 
 		if((in[4] > 3) && (in[4] < 7))
 			_model = in[4];
 		else
-			throw(string("unknown atmel model"));
+			throw(minor_exception("unknown atmel model"));
 
 		_version	= in[5];
 		_revision	= in[6];
@@ -114,9 +114,9 @@ bool DeviceAtmel::_probe() throw()
 						2, _id, _enumerator, path(),
 						min, max, "", 0, ControlAtmel::digital_input, ix);
 			}
-			catch(string(error))
+			catch(minor_exception e)
 			{
-				dlog("add atmel digital input: %s\n", error.c_str());
+				dlog("add atmel digital input: %s\n", e.message.c_str());
 			}
 
 			if(control)
@@ -144,9 +144,9 @@ bool DeviceAtmel::_probe() throw()
 						2, _id, _enumerator, path(),
 						min, max, "", 0, ControlAtmel::analog_input, ix);
 			}
-			catch(string(error))
+			catch(minor_exception e)
 			{
-				dlog("add atmel analog input: %s\n", error.c_str());
+				dlog("add atmel analog input: %s\n", e.message.c_str());
 			}
 
 			if(control)
@@ -174,9 +174,9 @@ bool DeviceAtmel::_probe() throw()
 						_generation + 1, _id, _enumerator, path(),
 						min, max, "", 0, ControlAtmel::digital_output, ix);
 			}
-			catch(string(error))
+			catch(minor_exception e)
 			{
-				dlog("add atmel digital output: %s\n", error.c_str());
+				dlog("add atmel digital output: %s\n", e.message.c_str());
 			}
 
 			if(control)
@@ -204,9 +204,9 @@ bool DeviceAtmel::_probe() throw()
 						2, _id, _enumerator, path(),
 						min, max, "", 0, ControlAtmel::pwm_output, ix);
 			}
-			catch(string(error))
+			catch(minor_exception e)
 			{
-				dlog("add atmel pwm output: %s\n", error.c_str());
+				dlog("add atmel pwm output: %s\n", e.message.c_str());
 			}
 
 			if(control)
@@ -216,16 +216,16 @@ bool DeviceAtmel::_probe() throw()
 			}
 		}
 	}
-	catch(string error)
+	catch(minor_exception e)
 	{
-		dlog("DeviceAtmel::_probe: %s\n", error.c_str());
+		dlog("DeviceAtmel::_probe: %s\n", e.message.c_str());
 		return(false);
 	}
 
 	return(true);
 }
 
-Interface::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) const throw(string)
+Interface::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) const throw(exception)
 {
 	stringstream			in;
 	string					out;
@@ -240,17 +240,17 @@ Interface::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) 
 	length = Interface::parse_bytes(out, bytes);
 
 	if(length < 3)
-		throw(string("DeviceAtmel::command: received too little bytes"));
+		throw(minor_exception("DeviceAtmel::command: received too little bytes"));
 
 	checksum = 0;
 	for(ix = 0; ix < length - 1; ix++)
 		checksum += bytes[ix];
 
 	if(checksum != bytes[length - 1])
-		throw(string("DeviceAtmel::command: checksum error"));
+		throw(minor_exception("DeviceAtmel::command: checksum error"));
 
 	if(bytes[0] != 0x00)
-		throw(string("DeviceAtmel::command: device returns error code"));
+		throw(minor_exception("DeviceAtmel::command: device returns error code"));
 
 	return(bytes);
 }

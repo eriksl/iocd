@@ -62,7 +62,7 @@ static string reset_form(string id) throw()
 	return(data);
 }
 
-int HttpServer::page_dispatcher_root(MHD_Connection * connection, const string & method, ConnectionData * con_cls, const KeyValues &) const throw()
+int HttpServer::page_dispatcher_root(MHD_Connection * connection, const string & method, ConnectionData * con_cls, const KeyValues &) const throw(exception)
 {
 	string			data;
 	string			value;
@@ -113,9 +113,13 @@ int HttpServer::page_dispatcher_root(MHD_Connection * connection, const string &
 
 		data += "</table>\n";
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		return(http_error(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, e));
+		return(http_error(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, e.message));
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(...)
 	{
@@ -125,7 +129,7 @@ int HttpServer::page_dispatcher_root(MHD_Connection * connection, const string &
 	return(send_html(connection, "/", MHD_HTTP_OK, data));
 }
 
-int HttpServer::page_dispatcher_read(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_read(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id;
@@ -146,9 +150,13 @@ int HttpServer::page_dispatcher_read(MHD_Connection *connection, const string &m
 		control = _interfaces->find_control_by_name(id->second);
 		value = control->read_string();
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		error = e;
+		error = e.message;
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(bad_lexical_cast e)
 	{
@@ -167,7 +175,7 @@ int HttpServer::page_dispatcher_read(MHD_Connection *connection, const string &m
 	return(send_html(connection, "read", MHD_HTTP_OK, data, 10, "/"));
 }
 
-int HttpServer::page_dispatcher_write(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_write(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id, value;
@@ -192,9 +200,13 @@ int HttpServer::page_dispatcher_write(MHD_Connection *connection, const string &
 		intval = lexical_cast<int>(value->second);
 		control->write(intval);
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		error = e;
+		error = e.message;
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(bad_lexical_cast e)
 	{
@@ -213,7 +225,7 @@ int HttpServer::page_dispatcher_write(MHD_Connection *connection, const string &
 	return(send_html(connection, "write", MHD_HTTP_OK, data, 10, "/"));
 }
 
-int HttpServer::page_dispatcher_readcounter(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_readcounter(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id;
@@ -234,9 +246,13 @@ int HttpServer::page_dispatcher_readcounter(MHD_Connection *connection, const st
 		control = _interfaces->find_control_by_name(id->second);
 		value = control->readcounter_string();
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		error = e;
+		error = e.message;
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(bad_lexical_cast e)
 	{
@@ -255,7 +271,7 @@ int HttpServer::page_dispatcher_readcounter(MHD_Connection *connection, const st
 	return(send_html(connection, "readcounter", MHD_HTTP_OK, data, 10, "/"));
 }
 
-int HttpServer::page_dispatcher_resetcounter(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_resetcounter(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id;
@@ -276,9 +292,13 @@ int HttpServer::page_dispatcher_resetcounter(MHD_Connection *connection, const s
 		control = _interfaces->find_control_by_name(id->second);
 		value = control->readresetcounter_string();
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		error = e;
+		error = e.message;
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(bad_lexical_cast e)
 	{
@@ -297,7 +317,7 @@ int HttpServer::page_dispatcher_resetcounter(MHD_Connection *connection, const s
 	return(send_html(connection, "resetcounter", MHD_HTTP_OK, data, 10, "/"));
 }
 
-int HttpServer::page_dispatcher_readpwmmode(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_readpwmmode(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id;
@@ -318,9 +338,13 @@ int HttpServer::page_dispatcher_readpwmmode(MHD_Connection *connection, const st
 		control = _interfaces->find_control_by_name(id->second);
 		value = control->readpwmmode_string();
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		error = e;
+		error = e.message;
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(bad_lexical_cast e)
 	{
@@ -339,7 +363,7 @@ int HttpServer::page_dispatcher_readpwmmode(MHD_Connection *connection, const st
 	return(send_html(connection, "readpwmmode", MHD_HTTP_OK, data, 10, "/"));
 }
 
-int HttpServer::page_dispatcher_writepwmmode(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_writepwmmode(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id, value;
@@ -364,9 +388,13 @@ int HttpServer::page_dispatcher_writepwmmode(MHD_Connection *connection, const s
 		intval = lexical_cast<int>(value->second);
 		control->writepwmmode(intval);
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		error = e;
+		error = e.message;
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 	catch(bad_lexical_cast e)
 	{
@@ -385,7 +413,7 @@ int HttpServer::page_dispatcher_writepwmmode(MHD_Connection *connection, const s
 	return(send_html(connection, "writepwmmode", MHD_HTTP_OK, data, 10, "/"));
 }
 
-int HttpServer::page_dispatcher_info(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw()
+int HttpServer::page_dispatcher_info(MHD_Connection *connection, const string &method, ConnectionData *con_cls, const KeyValues &variables) const throw(exception)
 {
 	Control								*control = 0;
 	string_string_map::const_iterator	id;
@@ -404,9 +432,13 @@ int HttpServer::page_dispatcher_info(MHD_Connection *connection, const string &m
 	{
 		control = _interfaces->find_control_by_name(id->second);
 	}
-	catch(string e)
+	catch(minor_exception e)
 	{
-		return(http_error(connection, MHD_HTTP_BAD_REQUEST, string("ERROR: ") + e + " (" + id->second + ")"));
+		return(http_error(connection, MHD_HTTP_BAD_REQUEST, string("ERROR: ") + e.message + " (" + id->second + ")"));
+	}
+	catch(major_exception e)
+	{
+		throw;
 	}
 
 	data += "<table><tr><th>Interface</th><th>Device</th><th>Id</th><th>Path</th><th>Short name</th><th>Long name</th>";
@@ -429,8 +461,21 @@ int HttpServer::page_dispatcher_info(MHD_Connection *connection, const string &m
 	return(send_html(connection, "info", MHD_HTTP_OK, data, -1));
 }
 
+int HttpServer::page_dispatcher_restart(MHD_Connection *connection, const string &, ConnectionData *, const KeyValues &) const throw(exception)
+{
+	_interfaces->signal(Interfaces::signal_user_restart);
 
-int HttpServer::page_dispatcher_stylecss(MHD_Connection * connection, const string & method, ConnectionData * con_cls, const KeyValues &) const throw()
+	return(send_html(connection, "restart", MHD_HTTP_OK, "<p>restart</p>", -1));
+}
+
+int HttpServer::page_dispatcher_quit(MHD_Connection *connection, const string &, ConnectionData *, const KeyValues &) const throw(exception)
+{
+	_interfaces->signal(Interfaces::signal_user_quit);
+
+	return(send_html(connection, "restart", MHD_HTTP_OK, "<p>quit</p>", -1));
+}
+
+int HttpServer::page_dispatcher_stylecss(MHD_Connection * connection, const string & method, ConnectionData * con_cls, const KeyValues &) const throw(exception)
 {
 	string data;
 

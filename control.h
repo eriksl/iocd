@@ -10,6 +10,7 @@ class Device;
 class Controls;
 
 #include "identity.h"
+#include "exception.h"
 
 class Control : public Identity
 {
@@ -17,22 +18,22 @@ class Control : public Identity
 
 				Control(Controls *parent_controls,
 						int generation, int parent_id, int ordinal, string parent_path,
-						double min, double max, string unit, int precision) throw(string);
+						double min, double max, string unit, int precision) throw(exception);
 		virtual	~Control()								throw();
 
-		virtual	double	read()					throw(string);
-		virtual	void	write(double)			throw(string);
-		virtual	double	readwrite(double)		throw(string);
-		virtual	int		readcounter()			throw(string);
-		virtual	int		readresetcounter()		throw(string);
-		virtual int		readpwmmode()			throw(string);
-		virtual	void	writepwmmode(int)		throw(string);
-		virtual string	readpwmmode_string()	throw(string);
+		virtual	double	read()					throw(exception);
+		virtual	void	write(double)			throw(exception);
+		virtual	double	readwrite(double)		throw(exception);
+		virtual	int		readcounter()			throw(exception);
+		virtual	int		readresetcounter()		throw(exception);
+		virtual int		readpwmmode()			throw(exception);
+		virtual	void	writepwmmode(int)		throw(exception);
+		virtual string	readpwmmode_string()	throw(exception);
 
-		string	read_string()					throw(string);
-		string	readwrite_string(double)		throw(string);
-		string	readcounter_string()			throw(string);
-		string	readresetcounter_string()		throw(string);
+		string	read_string()					throw(exception);
+		string	readwrite_string(double)		throw(exception);
+		string	readcounter_string()			throw(exception);
+		string	readresetcounter_string()		throw(exception);
 
 		double	min()					const	throw();
 		string	min_string()			const	throw();
