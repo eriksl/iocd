@@ -97,7 +97,7 @@ Util::byte_array ControlAtmel::_query(int cmd, int length, int param1, int param
 
 	try
 	{
-		bytes = _controls->device()->command(in.str());
+		bytes = _command(in.str());
 	}
 	catch(minor_exception e)
 	{

@@ -59,7 +59,7 @@ double ControlDigipicco::read() throw(exception)
 	{
 		for(attempt = 0; attempt < 3; attempt++)
 		{
-			bytes = _controls->device()->command("r 04 ");
+			bytes = _command("r 04 ");
 
 			if(bytes.size() == 4)
 				break;

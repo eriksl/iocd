@@ -201,6 +201,11 @@ string Control::readpwmmode_string() throw(exception)
 	return(_int_to_string(readpwmmode()));
 }
 
+Util::byte_array Control::_command(string cmd, int timeout, int chunks) throw(exception)
+{
+	return(_controls->device()->command(cmd, timeout, chunks));
+}
+
 string Control::_int_to_string(int in) throw()
 {
 	stringstream conv;

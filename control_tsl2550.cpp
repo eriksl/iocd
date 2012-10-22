@@ -87,7 +87,7 @@ double ControlTSL2550::_read_range(bool erange) throw(exception)
 
 	// s <72> p w 00 p w 03 p r 01 p // cycle power ensure fresh readings
 
-	out = _controls->device()->command("w 00 p w 03 p r 01");
+	out = _command("w 00 p w 03 p r 01");
 
 	if(out.size() != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));
@@ -97,7 +97,7 @@ double ControlTSL2550::_read_range(bool erange) throw(exception)
 
 	// w <18/1d> p r 01 p // select range mode
 
-	out = _controls->device()->command("w " + range_cmd + " p r 01");
+	out = _command("w " + range_cmd + " p r 01");
 	
 	if(out.size() != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));
@@ -109,7 +109,7 @@ double ControlTSL2550::_read_range(bool erange) throw(exception)
 
 	// w 43 p r 01 p // select channel 0
 
-	out = _controls->device()->command("w 43 p r 01");
+	out = _command("w 43 p r 01");
 	
 	if(out.size() != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));
@@ -118,7 +118,7 @@ double ControlTSL2550::_read_range(bool erange) throw(exception)
 
 	// w 83 p r 01 p // select channel 1
 
-	out = _controls->device()->command("w 83 p r 01");
+	out = _command("w 83 p r 01");
 	
 	if(out.size() != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));

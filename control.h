@@ -74,7 +74,7 @@ class Control : public Identity
 		control_props_t	_properties;
 		int				_precision;
 
-		Util::byte_array	commmand() throw(exception);
+		Util::byte_array _command(string cmd, int timeout = 200, int chunks = 1) throw(exception); 
 
 	private:
 

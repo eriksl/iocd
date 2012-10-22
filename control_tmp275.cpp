@@ -34,7 +34,7 @@ double ControlTMP275::read() throw(exception)
 	try
 	{
 		// put device in 12 bits / shutdown mode, take one ("one shot") measurement
-		bytes = _controls->device()->command("w 01 e1 r 01");
+		bytes = _command("w 01 e1 r 01");
 
 		if(bytes.size() != 1)
 			throw(minor_exception("invalid reply size from control"));
@@ -45,7 +45,7 @@ double ControlTMP275::read() throw(exception)
 		// conversion time takes 300 ms max
 		usleep(300000);
 
-		bytes = _controls->device()->command("w 00 r 02");
+		bytes = _command("w 00 r 02");
 
 		if(bytes.size() != 2)
 			throw(minor_exception("invalid reply size from control"));

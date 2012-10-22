@@ -35,7 +35,7 @@ double ControlDS1731::read() throw(exception)
 	double				temp;
 
 	// "w aa r 02 p" read temperature
-	out = _controls->device()->command("w aa r 02 p");
+	out = _command("w aa r 02 p");
 
 	if(out.size() != 2)
 		throw(minor_exception("read_ds1731: invalid reply"));
