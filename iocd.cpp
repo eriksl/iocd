@@ -75,6 +75,7 @@ int main(int argc, char ** argv)
 				fprintf(stderr, "usage: iocd [-d] [-f] [-o] [-r interfaces]\n"
 								"-f = foreground, -d = debug, -o = oneshot mode,\n"
 								"-r # = number of interfaces required to be present\n");
+				exit(1);
 			}
 		}
 	}
