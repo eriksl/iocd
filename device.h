@@ -15,9 +15,7 @@ class Device : public Identity
 {
 	public:
 
-				Device(Devices *parent,
-						int generation, int parent_id, int ordinal,
-						string parent_path)						throw(exception);
+				Device(Devices *parent, const Identity& id)		throw(exception);
 		virtual	~Device()										throw();
 		virtual Interface::byte_array command(string cmd,
 				int timeout = 200, int chunks = 1)		const	throw(exception) = 0;

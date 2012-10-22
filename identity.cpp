@@ -2,7 +2,10 @@
 #include "cppstreams.h"
 
 Identity::Identity(int generation_in, int parent_id_in, int ordinal_in, string parent_path_in) throw()
-	:	_generation(generation_in), _ordinal(ordinal_in), _parent_id(parent_id_in), _parent_path(parent_path_in)
+	:	_generation(generation_in),
+		_ordinal(ordinal_in),
+		_parent_id(parent_id_in),
+		_parent_path(parent_path_in)
 {
 	_id	 = (_ordinal & 0xff) << (8 * (3 - _generation));
 	_id |= _parent_id;

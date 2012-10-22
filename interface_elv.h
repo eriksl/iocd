@@ -7,9 +7,8 @@ class InterfaceELV : public Interface
 {
 	public:
 
-		InterfaceELV(Interfaces *parent_interfaces,
-				int generation, int parent_id, int ordinal,
-				string parent_path, string path)						throw(exception);
+		InterfaceELV(Interfaces *parent_interfaces, const Identity &id,
+				string device_node)				throw(exception);
 
 	protected:
 

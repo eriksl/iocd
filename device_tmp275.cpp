@@ -13,11 +13,10 @@
 #include <math.h>
 
 DeviceTMP275::DeviceTMP275(Devices *parent_devices,
-			int generation_in, int parent_id_in, int ordinal_in,
-			string parent_path_in, int address) throw(exception)
+			const Identity &id_in, int address) throw(exception)
 	:
-		Device(parent_devices, generation_in, parent_id_in, ordinal_in, parent_path_in),
-		_address(address)
+		Device(parent_devices, id_in),
+			_address(address)
 {
 	stringstream conv;
 

@@ -165,7 +165,7 @@ void Interfaces::_probe_usb_elv() throw()
 		try
 		{
 			dlog("probe elv: trying %s\n", rid.str().c_str());
-			interface = new InterfaceELV(this, 0, 0, _enumerator, "", rid.str());
+			interface = new InterfaceELV(this, Identity(0, 0, _enumerator, ""), rid.str());
 		}
 		catch(minor_exception e)
 		{

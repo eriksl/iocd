@@ -13,11 +13,10 @@
 #include <math.h>
 
 DeviceAtmel::DeviceAtmel(Devices *parent_devices,
-			int generation_in, int parent_id_in, int ordinal_in,
-			string parent_path_in, int address) throw(exception)
+			const Identity &id_in, int address_in) throw(exception)
 	:
-		Device(parent_devices, generation_in, parent_id_in, ordinal_in, parent_path_in),
-		_address(address)
+		Device(parent_devices, id_in),
+			_address(address_in)
 {
 	stringstream conv;
 	conv << "i2c:0x" << hex << setfill('0') << setw(2) << _address;

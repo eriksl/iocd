@@ -15,23 +15,20 @@
 #include <poll.h>
 #include <unistd.h>
 
-InterfaceELV::InterfaceELV(Interfaces *interfaces_in,
-			int generation_in, int parent_id_in, int ordinal_in,
-			string parent_path_in, string path_in) throw(exception)
-	:
-		Interface(interfaces_in, generation_in, parent_id_in, ordinal_in, parent_path_in, path_in)
+InterfaceELV::InterfaceELV(Interfaces *interfaces_in, const Identity &id_in, string device_node) throw(exception)
+	:	Interface(interfaces_in, id_in)
 {
 	string	device_short;
 	size_t	pos;
 
-	_open(path_in);
+	_open(device_node);
 
-	pos = path_in.find_last_of("/");
+	pos = device_node.find_last_of("/");
 
 	if(pos != string::npos)
-		device_short = path_in.substr(pos + 1);
+		device_short = device_node.substr(pos + 1);
 	else
-		device_short = path_in;
+		device_short = device_node;
 
 	_set_shortname(string("usb:") + device_short + ":elv");
 	_set_longname(string("ELV I2C interface at ") + path_in);

@@ -21,8 +21,7 @@ class Interface : public Identity
 	public:
 		typedef vector<uint8_t> byte_array;
 
-				Interface(Interfaces *parent_interfaces, int generation,
-						int parent_id, int ordinal, string parent_path, string path)	throw(exception);
+				Interface(Interfaces *parent_interfaces, const Identity& id)			throw(exception);
 		virtual	~Interface()															throw();
 
 		Interfaces *	interfaces()											const	throw();

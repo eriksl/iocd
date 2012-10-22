@@ -6,11 +6,12 @@
 
 #include "unistd.h"
 
-Interface::Interface(Interfaces *parent_interfaces,
-			int generation_in, int parent_id_in, int ordinal_in,
-			string parent_path_in, string) throw(exception)
-	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
-		_fd(-1), _enumerator(1), _devices(this), _interfaces(parent_interfaces)
+Interface::Interface(Interfaces *parent_interfaces, const Identity &id_in) throw(exception)
+	: Identity(id_in),
+			_fd(-1),
+			_enumerator(1),
+			_devices(this),
+			_interfaces(parent_interfaces)
 {
 	_mutex_valid	= false;
 	pthread_mutex_init(&_mutex, 0);

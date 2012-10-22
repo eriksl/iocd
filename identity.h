@@ -8,7 +8,9 @@ class Identity
 {
 	public:
 
-		Identity(int generation, int parent_id, int ordinal, string parent_path)	throw();
+		Identity(int generation, int parent_id,
+				int ordinal, string parent_path)
+										throw();
 
 		string	generation()	const	throw();
 		string	ordinal()		const	throw();

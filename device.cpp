@@ -3,9 +3,8 @@
 #include "controls.h"
 #include "cppstreams.h"
 
-Device::Device(Devices *parent_devices, int generation_in, int parent_id_in, int ordinal_in,
-			string parent_path_in) throw(exception)
-	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
+Device::Device(Devices *parent_devices, const Identity& id_in) throw(exception)
+	:	Identity(id_in),
 			_devices(parent_devices),
 			_controls(this),
 			_enumerator(1)

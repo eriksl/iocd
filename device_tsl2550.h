@@ -11,9 +11,8 @@ using std::string;
 class DeviceTSL2550 : public Device
 {
 	public:
-		DeviceTSL2550(Devices*, int generation, int parent_id, int ordinal,
-					string parent_path, int address)		throw(exception);
-		~DeviceTSL2550()									throw();
+		DeviceTSL2550(Devices*, const Identity &, int address)	throw(exception);
+		~DeviceTSL2550()										throw();
 
 		Interface::byte_array command(string cmd,
 						int timeout = 200, int chunks = 1)	const	throw(exception);
