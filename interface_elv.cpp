@@ -1,6 +1,9 @@
 #include "interface_elv.h"
 #include "device_atmel.h"
 #include "device_tmp275.h"
+#include "device_digipicco.h"
+#include "device_tsl2550.h"
+#include "device_ds1731.h"
 #include "devices.h"
 #include "syslog.h"
 
@@ -243,6 +246,9 @@ void InterfaceELV::_probe() throw()
 	_probe_atmel(0x02);
 	_probe_atmel(0x03);
 	_probe_tmp275(0x49);
+	_probe_digipicco(0x78);
+	_probe_tsl2550(0x39);
+	_probe_ds1731(0x48);
 }
 
 void InterfaceELV::_probe_atmel(int address) throw()
@@ -300,6 +306,97 @@ void InterfaceELV::_probe_tmp275(int address) throw()
 	if(device)
 	{
 		dlog("tmp275@0x%02x found: %s\n", address, device->shortname().c_str());
+		_devices.add(device);
+		_enumerator++;
+	}
+	else
+		dlog("%s\n", error.c_str());
+}
+
+void InterfaceELV::_probe_digipicco(int address) throw()
+{
+	DeviceDigipicco	*device;
+	string 			error;
+
+	device = 0;
+	dlog("probing digipicco@0x%02x\n", address);
+
+	try
+	{
+		device = new DeviceDigipicco(&_devices, _generation + 1, _id, _enumerator, path(), address);
+	}
+	catch(minor_exception e)
+	{
+		error = e.message;
+	}
+	catch(...)
+	{
+		error = "<unspecified error";
+	}
+
+	if(device)
+	{
+		dlog("digipicco@0x%02x found: %s\n", address, device->shortname().c_str());
+		_devices.add(device);
+		_enumerator++;
+	}
+	else
+		dlog("%s\n", error.c_str());
+}
+
+void InterfaceELV::_probe_tsl2550(int address) throw()
+{
+	DeviceTSL2550	*device = 0;
+	string 			error;
+
+	dlog("probing tsl2550@0x%02x\n", address);
+
+	try
+	{
+		device = new DeviceTSL2550(&_devices, _generation + 1, _id, _enumerator, path(), address);
+	}
+	catch(minor_exception e)
+	{
+		error = e.message;
+	}
+	catch(...)
+	{
+		error = "<unspecified error";
+	}
+
+	if(device)
+	{
+		dlog("tsl2550@0x%02x found: %s\n", address, device->shortname().c_str());
+		_devices.add(device);
+		_enumerator++;
+	}
+	else
+		dlog("%s\n", error.c_str());
+}
+
+void InterfaceELV::_probe_ds1731(int address) throw()
+{
+	DeviceDS1731	*device = 0;
+	string 			error;
+
+	dlog("probing tsl1731@0x%02x\n", address);
+
+	try
+	{
+		device = new DeviceDS1731(&_devices, _generation + 1, _id, _enumerator, path(), address);
+	}
+	catch(minor_exception e)
+	{
+		error = e.message;
+	}
+	catch(...)
+	{
+		error = "<unspecified error";
+	}
+
+	if(device)
+	{
+		dlog("ds1731@0x%02x found: %s\n", address, device->shortname().c_str());
 		_devices.add(device);
 		_enumerator++;
 	}
