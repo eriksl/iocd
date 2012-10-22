@@ -17,11 +17,10 @@ class Device : public Identity
 
 				Device(Devices *parent, const Identity& id)		throw(exception);
 		virtual	~Device()										throw();
-		virtual Util::byte_array command(string cmd,
-				int timeout = 200, int chunks = 1)		const	throw(exception) = 0;
 
-		Devices *	devices()									throw();
-		Controls *	controls()									throw();
+		Devices *					devices()										throw();
+		Controls *					controls()										throw();
+		virtual Util::byte_array	command(string cmd, int timeout, int chunks)	throw(exception);
 
 	protected:
 

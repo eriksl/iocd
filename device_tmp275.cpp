@@ -16,8 +16,7 @@
 DeviceTMP275::DeviceTMP275(Devices *parent_devices,
 			const Identity &id_in, int address) throw(exception)
 	:
-		Device(parent_devices, id_in),
-			_address(address)
+		DeviceI2C(parent_devices, id_in, address_in)
 {
 	stringstream conv;
 
@@ -80,19 +79,4 @@ bool DeviceTMP275::_probe() throw()
 	_controls.add(control);
 
 	return(true);
-}
-
-Util::byte_array DeviceTMP275::command(string cmd, int timeout, int chunks) const throw(exception)
-{
-	stringstream			in;
-	string					out;
-	Util::byte_array	bytes;
-
-	dlog("DeviceTMP275::command: address = %x/%x\n", _address, _address << 1);
-
-	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
-	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Util::parse_bytes(out, bytes);
-
-	return(bytes);
 }

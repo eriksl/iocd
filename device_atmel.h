@@ -1,14 +1,14 @@
 #ifndef _device_atmel_h_
 #define _device_atmel_h_
 
-#include "device.h"
+#include "device_i2c.h"
 #include "exception.h"
 #include "util.h"
 
 #include <string>
 using std::string;
 
-class DeviceAtmel : public Device
+class DeviceAtmel : public DeviceI2C
 {
 	public:
 		DeviceAtmel(Devices*, const Identity &, int address)	throw(exception);
@@ -21,7 +21,6 @@ class DeviceAtmel : public Device
 
 	private:
 
-		int		_address;
 		int		_model;
 		string	_modelname;
 		int		_version;

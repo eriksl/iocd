@@ -10,8 +10,7 @@
 DeviceDigipicco::DeviceDigipicco(Devices *parent_devices, const Identity &id_in,
 			int address_in) throw(exception)
 	:
-		Device(parent_devices, id_in),
-			_address(address_in)
+		DeviceI2C(parent_devices, id_in, address_in)
 {
 	stringstream conv;
 
@@ -77,19 +76,4 @@ bool DeviceDigipicco::_probe() throw()
 	_controls.add(control_temp);
 
 	return(true);
-}
-
-Util::byte_array DeviceDigipicco::command(string cmd, int timeout, int chunks) const throw(exception)
-{
-	stringstream		in;
-	string				out;
-	Util::byte_array	bytes;
-
-	dlog("DeviceDigipicco::command: address = %x/%x\n", _address, _address << 1);
-
-	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
-	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Util::parse_bytes(out, bytes);
-
-	return(bytes);
 }

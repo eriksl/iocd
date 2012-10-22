@@ -17,8 +17,7 @@
 DeviceAtmel::DeviceAtmel(Devices *parent_devices,
 			const Identity &id_in, int address_in) throw(exception)
 	:
-		Device(parent_devices, id_in),
-			_address(address_in)
+		DeviceI2C(parent_devices, id_in, address_in)
 {
 	stringstream conv;
 	conv << "i2c:0x" << hex << setfill('0') << setw(2) << _address;
@@ -226,32 +225,28 @@ bool DeviceAtmel::_probe() throw()
 	return(true);
 }
 
-Util::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) const throw(exception)
+Util::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) throw(exception)
 {
-	stringstream		in;
-	string				out;
-	int					ix;
-	uint8_t				checksum;
 	Util::byte_array	bytes;
 	int					length;
+	int					ix;
+	uint8_t				checksum;
 
-	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p r 00 p ";
-	out = _devices->interface()->command(in.str(), timeout, chunks);
-
-	length = Util::parse_bytes(out, bytes);
+	bytes	= DeviceI2C::command(cmd + " p r 00", timeout, chunks);
+	length	= bytes.size();
 
 	if(length < 3)
-		throw(minor_exception("DeviceAtmel::command: received too little bytes"));
+		throw(minor_exception("atmel: received too little bytes"));
 
 	checksum = 0;
 	for(ix = 0; ix < length - 1; ix++)
 		checksum += bytes[ix];
 
 	if(checksum != bytes[length - 1])
-		throw(minor_exception("DeviceAtmel::command: checksum error"));
+		throw(minor_exception("atmel: checksum error"));
 
 	if(bytes[0] != 0x00)
-		throw(minor_exception("DeviceAtmel::command: device returns error code"));
+		throw(minor_exception("atmel: device returns error code"));
 
 	return(bytes);
 }

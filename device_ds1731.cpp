@@ -8,8 +8,7 @@
 DeviceDS1731::DeviceDS1731(Devices *parent_devices,
 			const Identity &id_in, int address_in) throw(exception)
 	:
-		Device(parent_devices, id_in),
-			_address(address_in)
+		DeviceI2C(parent_devices, id_in, address_in)
 {
 	stringstream conv;
 
@@ -94,19 +93,4 @@ bool DeviceDS1731::_probe() throw()
 	_controls.add(control);
 
 	return(true);
-}
-
-Util::byte_array DeviceDS1731::command(string cmd, int timeout, int chunks) const throw(exception)
-{
-	stringstream			in;
-	string					out;
-	Util::byte_array	bytes;
-
-	dlog("DeviceDS1731::command: address = %x/%x\n", _address, _address << 1);
-
-	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
-	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Util::parse_bytes(out, bytes);
-
-	return(bytes);
 }

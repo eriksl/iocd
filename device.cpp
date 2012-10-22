@@ -24,3 +24,14 @@ Controls* Device::controls() throw()
 {
 	return(&_controls);
 }
+
+Util::byte_array Device::command(string cmd, int timeout, int chunks) throw(exception)
+{
+	string				out;
+	Util::byte_array	bytes;
+
+	out = _devices->interface()->command(cmd, timeout, chunks);
+	Util::parse_bytes(out, bytes);
+
+	return(bytes);
+}
