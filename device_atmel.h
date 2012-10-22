@@ -15,7 +15,7 @@ class DeviceAtmel : public DeviceI2C
 		~DeviceAtmel()											throw();
 
 		Util::byte_array command(string cmd, int timeout = 200,
-				int chunks = 1)							const	throw(exception);
+				int chunks = 1)									throw(exception);
 	
 	protected:
 
@@ -26,7 +26,7 @@ class DeviceAtmel : public DeviceI2C
 		int		_version;
 		int		_revision;
 
-		bool					_probe()						throw();
-		Util::byte_array	_getcontrol(int cmd)		const	throw(exception);
+		bool				_probe()							throw();
+		Util::byte_array	_getcontrol(int cmd)				throw(exception);
 };
 #endif

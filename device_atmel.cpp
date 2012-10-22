@@ -26,7 +26,7 @@ DeviceAtmel::~DeviceAtmel() throw()
 {
 }
 
-Util::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(exception)
+Util::byte_array DeviceAtmel::_getcontrol(int cmd) throw(exception)
 {
 	stringstream		in;
 	Util::byte_array	out;
