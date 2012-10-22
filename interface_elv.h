@@ -16,13 +16,8 @@ class InterfaceELV : public Interface
 
 	private:
 
-		void	_open(string path)				throw(exception);
-		void	_probe()						throw();
-		void	_probe_atmel(int address)		throw();
-		void	_probe_tmp275(int address)		throw();
-		void	_probe_digipicco(int address)	throw();
-		void	_probe_tsl2550(int address)		throw();
-		void	_probe_ds1731(int address)		throw();
+									void	_open(string path)	throw(exception);
+		template<class ControlT>	void	_probe(int address)	throw();
 };
 
 #endif
