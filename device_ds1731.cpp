@@ -3,6 +3,7 @@
 #include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
+#include "util.h"
 
 DeviceDS1731::DeviceDS1731(Devices *parent_devices,
 			const Identity &id_in, int address_in) throw(exception)
@@ -30,7 +31,7 @@ DeviceDS1731::~DeviceDS1731() throw()
 bool DeviceDS1731::_probe() throw()
 {
 	stringstream			conv;
-	Interface::byte_array	out;
+	Util::byte_array	out;
 	ControlDS1731			*control = 0;
 
 	try
@@ -95,17 +96,17 @@ bool DeviceDS1731::_probe() throw()
 	return(true);
 }
 
-Interface::byte_array DeviceDS1731::command(string cmd, int timeout, int chunks) const throw(exception)
+Util::byte_array DeviceDS1731::command(string cmd, int timeout, int chunks) const throw(exception)
 {
 	stringstream			in;
 	string					out;
-	Interface::byte_array	bytes;
+	Util::byte_array	bytes;
 
 	dlog("DeviceDS1731::command: address = %x/%x\n", _address, _address << 1);
 
 	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
 	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Interface::parse_bytes(out, bytes);
+	Util::parse_bytes(out, bytes);
 
 	return(bytes);
 }

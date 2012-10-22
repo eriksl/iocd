@@ -3,6 +3,7 @@
 #include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
+#include "util.h"
 
 #include <unistd.h>
 
@@ -31,11 +32,11 @@ DeviceDigipicco::~DeviceDigipicco() throw()
 
 bool DeviceDigipicco::_probe() throw()
 {
-	stringstream				conv;
-	Interface::byte_array		in;
-	int							attempt;
-	ControlDigipicco			*control_hum = 0;
-	ControlDigipicco			*control_temp = 0;
+	stringstream			conv;
+	Util::byte_array		in;
+	int						attempt;
+	ControlDigipicco		*control_hum = 0;
+	ControlDigipicco		*control_temp = 0;
 
 	try
 	{
@@ -78,17 +79,17 @@ bool DeviceDigipicco::_probe() throw()
 	return(true);
 }
 
-Interface::byte_array DeviceDigipicco::command(string cmd, int timeout, int chunks) const throw(exception)
+Util::byte_array DeviceDigipicco::command(string cmd, int timeout, int chunks) const throw(exception)
 {
-	stringstream			in;
-	string					out;
-	Interface::byte_array	bytes;
+	stringstream		in;
+	string				out;
+	Util::byte_array	bytes;
 
 	dlog("DeviceDigipicco::command: address = %x/%x\n", _address, _address << 1);
 
 	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
 	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Interface::parse_bytes(out, bytes);
+	Util::parse_bytes(out, bytes);
 
 	return(bytes);
 }

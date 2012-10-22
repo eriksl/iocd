@@ -2,7 +2,7 @@
 #define _device_tsl2550_h_
 
 #include "device.h"
-#include "interface.h"
+#include "util.h"
 #include "exception.h"
 
 #include <string>
@@ -14,8 +14,8 @@ class DeviceTSL2550 : public Device
 		DeviceTSL2550(Devices*, const Identity &, int address)	throw(exception);
 		~DeviceTSL2550()										throw();
 
-		Interface::byte_array command(string cmd,
-						int timeout = 200, int chunks = 1)	const	throw(exception);
+		Util::byte_array command(string cmd, int timeout = 200,
+				int chunks = 1)							const	throw(exception);
 	
 	protected:
 

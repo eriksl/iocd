@@ -11,6 +11,7 @@ class Controls;
 
 #include "identity.h"
 #include "exception.h"
+#include "util.h"
 
 class Control : public Identity
 {
@@ -72,6 +73,8 @@ class Control : public Identity
 		string			_unit;
 		control_props_t	_properties;
 		int				_precision;
+
+		Util::byte_array	commmand() throw(exception);
 
 	private:
 

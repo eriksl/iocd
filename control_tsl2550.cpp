@@ -5,6 +5,7 @@
 #include "cppstreams.h"
 #include "syslog.h"
 #include "exception.h"
+#include "util.h"
 
 #include <unistd.h>
 #include <math.h>
@@ -63,14 +64,13 @@ double ControlTSL2550::_read_retry(int attempts, bool erange) throw(exception)
 
 double ControlTSL2550::_read_range(bool erange) throw(exception)
 {
-	Interface::byte_array	out;
-	string					range_cmd;
-	int						range_sleep;
-	int						range_multiplier;
-	int						ch0, ch1, cch0, cch1;
-	bool					overflow;
-	double					lux;
-
+	Util::byte_array	out;
+	string				range_cmd;
+	int					range_sleep;
+	int					range_multiplier;
+	int					ch0, ch1, cch0, cch1;
+	bool				overflow;
+	double				lux;
 
 	if(erange)
 	{

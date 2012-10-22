@@ -5,6 +5,7 @@
 #include "cppstreams.h"
 #include "syslog.h"
 #include "exception.h"
+#include "util.h"
 
 #include <unistd.h>
 
@@ -27,8 +28,8 @@ ControlTMP275::~ControlTMP275() throw()
 
 double ControlTMP275::read() throw(exception)
 {
-	Interface::byte_array	bytes;
-	int16_t					tmp;
+	Util::byte_array	bytes;
+	int16_t				tmp;
 
 	try
 	{

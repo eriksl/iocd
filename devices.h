@@ -1,7 +1,6 @@
 #ifndef _devices_h_
 #define _devices_h_
 
-#include "interface.h"
 #include "identity.h"
 
 #include <string>

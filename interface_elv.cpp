@@ -7,6 +7,7 @@
 #include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
+#include "util.h"
 
 #include <termios.h>
 #include <fcntl.h>
@@ -152,7 +153,7 @@ string InterfaceELV::_command(const string &cmd_in, int timeout, int chunks) thr
 		if(clock_gettime(CLOCK_MONOTONIC, &now))
 			throw(minor_exception("InterfaceELV::_command: clock_gettime error\n"));
 
-		timeout_left = timespec_diff(start, now);
+		timeout_left = Util::timespec_diff(start, now);
 
 		if((timeout > 0) && (timeout_left < 0))
 			throw(minor_exception("InterfaceELV::_command: fatal timeout (1)"));
@@ -182,7 +183,7 @@ string InterfaceELV::_command(const string &cmd_in, int timeout, int chunks) thr
 	if(clock_gettime(CLOCK_MONOTONIC, &now))
 		throw(minor_exception("InterfaceELV::_command: clock_gettime error\n"));
 
-	timeout_left = timeout > 0 ? timeout - timespec_diff(start, now) : -1;
+	timeout_left = timeout > 0 ? timeout - Util::timespec_diff(start, now) : -1;
 
 	pfd.fd		= _fd;
 	pfd.events	= POLLOUT | POLLERR;
@@ -206,7 +207,7 @@ string InterfaceELV::_command(const string &cmd_in, int timeout, int chunks) thr
 		if(clock_gettime(CLOCK_MONOTONIC, &now))
 			throw(minor_exception("InterfaceELV::_command: clock_gettime error\n"));
 
-		timeout_left = timeout > 0 ? timeout - timespec_diff(start, now) : -1;
+		timeout_left = timeout > 0 ? timeout - Util::timespec_diff(start, now) : -1;
 
 		if((timeout > 0) && (timeout_left < 0))
 			break;

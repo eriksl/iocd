@@ -2,7 +2,7 @@
 #define _control_atmel_h_
 
 #include "control.h"
-#include "interface.h"
+#include "util.h"
 
 #include <string>
 using std::string;
@@ -37,9 +37,9 @@ class ControlAtmel : public Control
 
 	private:
 
-		control_t				_control_type;
-		int						_index;
+		control_t			_control_type;
+		int					_index;
 
-		Interface::byte_array	_query(int cmd, int length, int param1 = -1, int param2 = -1, int param3 = -1, int param4 = -1) throw(exception);
+		Util::byte_array	_query(int cmd, int length, int param1 = -1, int param2 = -1, int param3 = -1, int param4 = -1) throw(exception);
 };
 #endif

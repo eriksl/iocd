@@ -4,6 +4,7 @@
 #include "interface.h"
 #include "cppstreams.h"
 #include "syslog.h"
+#include "util.h"
 
 ControlAtmel::ControlAtmel(Controls *parent_controls,
 			int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
@@ -72,10 +73,10 @@ ControlAtmel::~ControlAtmel() throw()
 {
 }
 
-Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int param2, int param3, int param4) throw(exception)
+Util::byte_array ControlAtmel::_query(int cmd, int length, int param1, int param2, int param3, int param4) throw(exception)
 {
-	ostringstream			in;
-	Interface::byte_array	bytes;
+	ostringstream		in;
+	Util::byte_array	bytes;
 
 	if((cmd & 0x0f) == 0x00)
 		cmd |= _index;
@@ -115,7 +116,7 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 
 double ControlAtmel::read() throw(exception)
 {
-	Interface::byte_array bytes;
+	Util::byte_array bytes;
 
 	switch(_control_type)
 	{
@@ -189,7 +190,7 @@ void ControlAtmel::write(double value_in) throw(exception)
 
 int ControlAtmel::readcounter() throw(exception)
 {
-	Interface::byte_array bytes;
+	Util::byte_array bytes;
 
 	switch(_control_type)
 	{
@@ -214,7 +215,7 @@ int ControlAtmel::readcounter() throw(exception)
 
 int ControlAtmel::readresetcounter() throw(exception)
 {
-	Interface::byte_array bytes;
+	Util::byte_array bytes;
 
 	switch(_control_type)
 	{
@@ -239,8 +240,8 @@ int ControlAtmel::readresetcounter() throw(exception)
 
 int ControlAtmel::readpwmmode() throw(exception)
 {
-	Interface::byte_array	bytes;
-	int						mode;
+	Util::byte_array	bytes;
+	int					mode;
 
 	switch(_control_type)
 	{

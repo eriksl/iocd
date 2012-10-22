@@ -6,9 +6,6 @@ class Interfaces;
 #include <string>
 using std::string;
 
-#include <vector>
-using std::vector;
-
 #include <pthread.h>
 #include <stdint.h>
 
@@ -19,7 +16,6 @@ using std::vector;
 class Interface : public Identity
 {
 	public:
-		typedef vector<uint8_t> byte_array;
 
 				Interface(Interfaces *parent_interfaces, const Identity& id)			throw(exception);
 		virtual	~Interface()															throw();
@@ -28,8 +24,6 @@ class Interface : public Identity
 		Devices *		devices()														throw();
 
 		string			command(string cmd, int timeout = 200, int chunks = 1)			throw(exception);
-		static int		parse_bytes(string str, byte_array & values)					throw();
-		static int		timespec_diff(timespec from, timespec to)						throw();
 
 	protected:
 

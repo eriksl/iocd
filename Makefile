@@ -1,7 +1,7 @@
 TARGET			= x86_64
 DEBUG			= off
 PROGRAM			= iocd
-GENERIC_OBJS	= iocd.o syslog.o identity.o
+GENERIC_OBJS	= iocd.o syslog.o identity.o util.o
 INTERFACE_OBJS	= interfaces.o interface.o interface_elv.o
 DEVICE_OBJS		= devices.o device.o device_atmel.o device_tmp275.o device_digipicco.o device_tsl2550.o device_ds1731.o
 CONTROL_OBJS	= controls.o control.o control_atmel.o control_tmp275.o control_digipicco.o control_tsl2550.o control_ds1731.o

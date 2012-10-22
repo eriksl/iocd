@@ -5,6 +5,7 @@
 #include "cppstreams.h"
 #include "syslog.h"
 #include "exception.h"
+#include "util.h"
 
 #include <unistd.h>
 #include <math.h>
@@ -28,10 +29,10 @@ ControlDS1731::~ControlDS1731() throw()
 
 double ControlDS1731::read() throw(exception)
 {
-	Interface::byte_array	out;
-	bool					negative;
-	int						temp_hex;
-	double					temp;
+	Util::byte_array	out;
+	bool				negative;
+	int					temp_hex;
+	double				temp;
 
 	// "w aa r 02 p" read temperature
 	out = _controls->device()->command("w aa r 02 p");

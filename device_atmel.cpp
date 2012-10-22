@@ -1,8 +1,10 @@
 #include "device_atmel.h"
 #include "control_atmel.h"
 #include "devices.h"
+#include "interface.h"
 #include "syslog.h"
 #include "cppstreams.h"
+#include "util.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -35,10 +37,10 @@ DeviceAtmel::~DeviceAtmel() throw()
 {
 }
 
-Interface::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(exception)
+Util::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(exception)
 {
-	stringstream			in;
-	Interface::byte_array	out;
+	stringstream		in;
+	Util::byte_array	out;
 
 	// w 07 xx 00: request controls
 
@@ -56,9 +58,9 @@ Interface::byte_array DeviceAtmel::_getcontrol(int cmd) const throw(exception)
 
 bool DeviceAtmel::_probe() throw()
 {
-	stringstream			conv;
-	Interface::byte_array	in;
-	int						ix;
+	stringstream		conv;
+	Util::byte_array	in;
+	int					ix;
 
 	try
 	{
@@ -224,19 +226,19 @@ bool DeviceAtmel::_probe() throw()
 	return(true);
 }
 
-Interface::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) const throw(exception)
+Util::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) const throw(exception)
 {
-	stringstream			in;
-	string					out;
-	int						ix;
-	uint8_t					checksum;
-	Interface::byte_array	bytes;
-	int						length;
+	stringstream		in;
+	string				out;
+	int					ix;
+	uint8_t				checksum;
+	Util::byte_array	bytes;
+	int					length;
 
 	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p r 00 p ";
 	out = _devices->interface()->command(in.str(), timeout, chunks);
 
-	length = Interface::parse_bytes(out, bytes);
+	length = Util::parse_bytes(out, bytes);
 
 	if(length < 3)
 		throw(minor_exception("DeviceAtmel::command: received too little bytes"));

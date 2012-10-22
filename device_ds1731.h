@@ -2,7 +2,7 @@
 #define _device_ds1731_h_
 
 #include "device.h"
-#include "interface.h"
+#include "util.h"
 #include "exception.h"
 
 #include <string>
@@ -14,7 +14,7 @@ class DeviceDS1731 : public Device
 		DeviceDS1731(Devices*, const Identity&, int address)	throw(exception);
 		~DeviceDS1731()											throw();
 
-		Interface::byte_array command(string cmd,
+		Util::byte_array command(string cmd,
 						int timeout = 200, int chunks = 1)	const	throw(exception);
 	
 	protected:

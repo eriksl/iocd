@@ -3,6 +3,7 @@
 #include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
+#include "util.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -37,9 +38,9 @@ DeviceTMP275::~DeviceTMP275() throw()
 
 bool DeviceTMP275::_probe() throw()
 {
-	stringstream			conv;
-	Interface::byte_array	in;
-	ControlTMP275			*control = 0;
+	stringstream		conv;
+	Util::byte_array	in;
+	ControlTMP275		*control = 0;
 
 	try
 	{
@@ -81,17 +82,17 @@ bool DeviceTMP275::_probe() throw()
 	return(true);
 }
 
-Interface::byte_array DeviceTMP275::command(string cmd, int timeout, int chunks) const throw(exception)
+Util::byte_array DeviceTMP275::command(string cmd, int timeout, int chunks) const throw(exception)
 {
 	stringstream			in;
 	string					out;
-	Interface::byte_array	bytes;
+	Util::byte_array	bytes;
 
 	dlog("DeviceTMP275::command: address = %x/%x\n", _address, _address << 1);
 
 	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
 	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Interface::parse_bytes(out, bytes);
+	Util::parse_bytes(out, bytes);
 
 	return(bytes);
 }

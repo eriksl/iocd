@@ -5,6 +5,7 @@
 #include "cppstreams.h"
 #include "syslog.h"
 #include "exception.h"
+#include "util.h"
 
 #include <unistd.h>
 
@@ -49,10 +50,10 @@ ControlDigipicco::~ControlDigipicco() throw()
 
 double ControlDigipicco::read() throw(exception)
 {
-	Interface::byte_array	bytes;
-	uint16_t				rv[2];
-	int						attempt;
-	double					temperature, humidity;
+	Util::byte_array	bytes;
+	uint16_t			rv[2];
+	int					attempt;
+	double				temperature, humidity;
 
 	try
 	{

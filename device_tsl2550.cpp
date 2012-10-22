@@ -3,6 +3,7 @@
 #include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
+#include "util.h"
 
 DeviceTSL2550::DeviceTSL2550(Devices *parent_devices,
 		const Identity &id_in, int address_in) throw(exception)
@@ -29,9 +30,9 @@ DeviceTSL2550::~DeviceTSL2550() throw()
 
 bool DeviceTSL2550::_probe() throw()
 {
-	stringstream			conv;
-	Interface::byte_array	out;
-	ControlTSL2550			*control = 0;
+	stringstream		conv;
+	Util::byte_array	out;
+	ControlTSL2550		*control = 0;
 
 	try
 	{
@@ -64,17 +65,17 @@ bool DeviceTSL2550::_probe() throw()
 	return(true);
 }
 
-Interface::byte_array DeviceTSL2550::command(string cmd, int timeout, int chunks) const throw(exception)
+Util::byte_array DeviceTSL2550::command(string cmd, int timeout, int chunks) const throw(exception)
 {
-	stringstream			in;
-	string					out;
-	Interface::byte_array	bytes;
+	stringstream		in;
+	string				out;
+	Util::byte_array	bytes;
 
 	dlog("DeviceTSL2550::command: address = %x/%x\n", _address, _address << 1);
 
 	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p ";
 	out = _devices->interface()->command(in.str(), timeout, chunks);
-	Interface::parse_bytes(out, bytes);
+	Util::parse_bytes(out, bytes);
 
 	return(bytes);
 }
