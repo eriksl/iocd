@@ -77,12 +77,8 @@ Interface::byte_array ControlAtmel::_query(int cmd, int length, int param1, int 
 	ostringstream			in;
 	Interface::byte_array	bytes;
 
-	dlog("cmd1: %x\n", cmd);
-
 	if((cmd & 0x0f) == 0x00)
 		cmd |= _index;
-
-	dlog("cmd2: %x\n", cmd);
 
 	in << "w " << hex << setw(2) << setfill('0') << cmd;
 
