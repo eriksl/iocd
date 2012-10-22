@@ -110,8 +110,7 @@ bool DeviceAtmel::_probe() throw()
 
 			try
 			{
-				control = new ControlAtmel(&_controls,
-						2, _id, _enumerator, path(),
+				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 						min, max, "", 0, ControlAtmel::digital_input, ix);
 			}
 			catch(minor_exception e)
@@ -140,8 +139,7 @@ bool DeviceAtmel::_probe() throw()
 
 			try
 			{
-				control = new ControlAtmel(&_controls,
-						2, _id, _enumerator, path(),
+				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 						min, max, "", 0, ControlAtmel::analog_input, ix);
 			}
 			catch(minor_exception e)
@@ -170,8 +168,7 @@ bool DeviceAtmel::_probe() throw()
 
 			try
 			{
-				control = new ControlAtmel(&_controls,
-						_generation + 1, _id, _enumerator, path(),
+				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 						min, max, "", 0, ControlAtmel::digital_output, ix);
 			}
 			catch(minor_exception e)
@@ -200,8 +197,7 @@ bool DeviceAtmel::_probe() throw()
 
 			try
 			{
-				control = new ControlAtmel(&_controls,
-						2, _id, _enumerator, path(),
+				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 						min, max, "", 0, ControlAtmel::pwm_output, ix);
 			}
 			catch(minor_exception e)

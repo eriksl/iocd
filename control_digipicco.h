@@ -19,8 +19,7 @@ class ControlDigipicco : public Control
 			control_humidity
 		} control_t;
 
-				ControlDigipicco(Controls *parent_controls,
-						int generation, int parent_id, int ordinal, string parent_path,
+				ControlDigipicco(Controls *parent_controls, const Identity &id,
 						double min, double max, string unit, int precision, control_t type) throw(exception);
 		virtual	~ControlDigipicco() throw();
 

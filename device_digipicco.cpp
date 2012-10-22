@@ -55,10 +55,10 @@ bool DeviceDigipicco::_probe() throw()
 		if((in[0] == 0xff) && (in[1] == 0xff) && (in[2] == 0xff) && (in[3] == 0xff))
 			throw(minor_exception("incorrect reply"));
 
-		control_hum = new ControlDigipicco(&_controls, _generation + 1, _id, _enumerator, path(),
+		control_hum = new ControlDigipicco(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 										0, 100, "%", 0, ControlDigipicco::control_humidity);
 		_enumerator++;
-		control_temp = new ControlDigipicco(&_controls, _generation + 1, _id, _enumerator, path(),
+		control_temp = new ControlDigipicco(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 										-40, 125, "˙C", 2, ControlDigipicco::control_temperature);
 		_enumerator++;
 	}

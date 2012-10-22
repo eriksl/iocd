@@ -7,13 +7,11 @@
 #include "util.h"
 
 ControlAtmel::ControlAtmel(Controls *parent_controls,
-			int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
+			const Identity &id_in,
 			double min_in, double max_in, string unit_in, int precision_in,
 			control_t control_type_in, int index_in) throw(exception)
 	:
-		Control(parent_controls,
-				generation_in, parent_id_in, ordinal_in, parent_path_in,
-				min_in, max_in, unit_in, precision_in),
+		Control(parent_controls, id_in, min_in, max_in, unit_in, precision_in),
 			_control_type(control_type_in), _index(index_in)
 {
 	stringstream	conv;

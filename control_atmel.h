@@ -19,8 +19,7 @@ class ControlAtmel : public Control
 			pwm_output
 		} control_t;
 
-				ControlAtmel(Controls *parent_controls,
-						int generation, int parent_id, int ordinal, string parent_path,
+				ControlAtmel(Controls *parent_controls, const Identity &id,
 						double min, double max, string unit, int precision,
 						control_t control_type, int index)	throw(exception);
 		virtual	~ControlAtmel()								throw();

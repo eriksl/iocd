@@ -17,9 +17,9 @@ class Control : public Identity
 {
 	public:
 
-				Control(Controls *parent_controls,
-						int generation, int parent_id, int ordinal, string parent_path,
-						double min, double max, string unit, int precision) throw(exception);
+				Control(Controls *parent_controls, const Identity &id,
+						double min, double max,
+						string unit, int precision)		throw(exception);
 		virtual	~Control()								throw();
 
 		virtual	double	read()					throw(exception);

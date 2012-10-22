@@ -13,8 +13,7 @@ class ControlTSL2550 : public Control
 {
 	public:
 
-				ControlTSL2550(Controls *parent_controls,
-						int generation, int parent_id, int ordinal, string parent_path,
+				ControlTSL2550(Controls *parent_controls, const Identity &id,
 						double min, double max, string unit, int precision) throw(exception);
 		virtual	~ControlTSL2550() throw();
 

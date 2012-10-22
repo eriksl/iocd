@@ -62,7 +62,7 @@ bool DeviceTMP275::_probe() throw()
 		if(in[0] != 0x61)
 			throw(minor_exception("incorrect reply from probe"));
 
-		control = new ControlTMP275(&_controls, _generation + 1, _id, _enumerator, path(),
+		control = new ControlTMP275(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 										-40, 125, "˙C", 2);
 	}
 	catch(minor_exception e)

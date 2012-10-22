@@ -13,8 +13,7 @@ class ControlDS1731 : public Control
 {
 	public:
 
-				ControlDS1731(Controls *parent_controls,
-						int generation, int parent_id, int ordinal, string parent_path,
+				ControlDS1731(Controls *parent_controls, const Identity &id,
 						double min, double max, string unit, int precision) throw(exception);
 		virtual	~ControlDS1731() throw();
 

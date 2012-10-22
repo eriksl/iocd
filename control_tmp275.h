@@ -13,8 +13,7 @@ class ControlTMP275 : public Control
 {
 	public:
 
-				ControlTMP275(Controls *parent_controls,
-						int generation, int parent_id, int ordinal, string parent_path,
+				ControlTMP275(Controls *parent_controls, const Identity &id,
 						double min, double max, string unit, int precision) throw(exception);
 		virtual	~ControlTMP275() throw();
 

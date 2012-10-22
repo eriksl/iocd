@@ -76,7 +76,7 @@ bool DeviceDS1731::_probe() throw()
 		if(out.size() != 1)
 			throw(minor_exception("incorrect length in reply"));
 
-		control = new ControlDS1731(&_controls, _generation + 1, _id, _enumerator, path(),
+		control = new ControlDS1731(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 										-55, 125, "˙C", 2);
 	}
 	catch(minor_exception e)

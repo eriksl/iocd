@@ -6,10 +6,9 @@
 #include "syslog.h"
 #include "util.h"
 
-Control::Control(Controls *parent_controls,
-				int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
+Control::Control(Controls *parent_controls, const Identity &id_in,
 				double min_in, double max_in, string unit_in, int precision_in) throw(exception)
-	:	Identity(generation_in, parent_id_in, ordinal_in, parent_path_in),
+	:	Identity(id_in),
 			_controls(parent_controls),
 			_min(min_in), _max(max_in), _unit(unit_in), _precision(precision_in)
 {

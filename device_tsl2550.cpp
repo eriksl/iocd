@@ -45,7 +45,7 @@ bool DeviceTSL2550::_probe() throw()
 		if(out[0] != 0x03)
 			throw(minor_exception("incorrect reply from probe"));
 
-		control = new ControlTSL2550(&_controls, _generation + 1, _id, _enumerator, path(),
+		control = new ControlTSL2550(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
 										0, 6500, "lux", 2);
 	}
 	catch(minor_exception e)

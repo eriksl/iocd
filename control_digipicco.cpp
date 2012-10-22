@@ -9,14 +9,11 @@
 
 #include <unistd.h>
 
-ControlDigipicco::ControlDigipicco(Controls *parent_controls,
-			int generation_in, int parent_id_in, int ordinal_in, string parent_path_in,
+ControlDigipicco::ControlDigipicco(Controls *parent_controls, const Identity &id_in,
 			double min_in, double max_in, string unit_in, int precision_in,
 			ControlDigipicco::control_t type) throw(exception)
 	:
-		Control(parent_controls,
-				generation_in, parent_id_in, ordinal_in, parent_path_in,
-				min_in, max_in, unit_in, precision_in),
+		Control(parent_controls, id_in, min_in, max_in, unit_in, precision_in),
 		_type(type)
 {
 	switch(type)
