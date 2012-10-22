@@ -1,6 +1,5 @@
 #include "device_tsl2550.h"
 #include "control_tsl2550.h"
-#include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
 #include "util.h"

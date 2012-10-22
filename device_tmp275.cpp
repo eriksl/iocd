@@ -1,20 +1,11 @@
 #include "device_tmp275.h"
 #include "control_tmp275.h"
-#include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
 #include "util.h"
 
-#include <string.h>
-#include <stdio.h>
-#include <termios.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <poll.h>
-#include <math.h>
-
 DeviceTMP275::DeviceTMP275(Devices *parent_devices,
-			const Identity &id_in, int address) throw(exception)
+			const Identity &id_in, int address_in) throw(exception)
 	:
 		DeviceI2C(parent_devices, id_in, address_in)
 {

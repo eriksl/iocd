@@ -1,5 +1,4 @@
 #include "devices.h"
-
 #include "device.h"
 #include "identity.h"
 #include "syslog.h"

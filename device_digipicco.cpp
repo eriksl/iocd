@@ -1,6 +1,5 @@
 #include "device_digipicco.h"
 #include "control_digipicco.h"
-#include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
 #include "util.h"

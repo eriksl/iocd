@@ -1,18 +1,8 @@
 #include "device_atmel.h"
 #include "control_atmel.h"
-#include "devices.h"
-#include "interface.h"
 #include "syslog.h"
 #include "cppstreams.h"
 #include "util.h"
-
-#include <string.h>
-#include <stdio.h>
-#include <termios.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <poll.h>
-#include <math.h>
 
 DeviceAtmel::DeviceAtmel(Devices *parent_devices,
 			const Identity &id_in, int address_in) throw(exception)

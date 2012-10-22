@@ -12,7 +12,7 @@ class InterfaceELV : public Interface
 
 	protected:
 
-		string	_command(const string &cmd, int timeout, int chunks)	throw(exception);
+		string	_command(const string &cmd, int timeout, int chunks) throw(exception);
 
 	private:
 

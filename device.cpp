@@ -1,7 +1,7 @@
 #include "device.h"
 #include "devices.h"
 #include "controls.h"
-#include "cppstreams.h"
+#include "interface.h"
 
 Device::Device(Devices *parent_devices, const Identity& id_in) throw(exception)
 	:	Identity(id_in),

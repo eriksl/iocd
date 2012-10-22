@@ -1,6 +1,5 @@
 #include "device_ds1731.h"
 #include "control_ds1731.h"
-#include "devices.h"
 #include "syslog.h"
 #include "cppstreams.h"
 #include "util.h"
