@@ -100,7 +100,7 @@ int HttpServer::page_dispatcher_root(MHD_Connection * connection, const string &
 						data += "<tr><td/><td/>";
 
 					data += string("<td><a href=\"/info?control=") + HttpServer::uriencode((**control).id()) + "\">" + (**control).longname().c_str() + "</a></td>";
-					data += "<td>" + ((**control).canread() ? (**control).read_string() : "") + (**control).unit() + "</td>";
+					data += "<td>" + ((**control).canread() ? (**control).read_string() : "") + " " + (**control).unit() + "</td>";
 					data += "<td>" + ((**control).canwrite() ? write_form((**control).id()) : "") + "</td>";
 					data += "<td>" + ((**control).cancount() ? ((**control).readcounter_string()) : "") + "</td>";
 					data += "<td>" + ((**control).cancount() ? reset_form((**control).id()) : "") + "</td>";
