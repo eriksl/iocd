@@ -1,36 +1,65 @@
 #include "device_ds1731.h"
-#include "control_ds1731.h"
-#include "syslog.h"
+#include "control.h"
 #include "cppstreams.h"
 #include "util.h"
 
-DeviceDS1731::DeviceDS1731(Devices *parent_devices,
-			const Identity &id_in, int address_in) throw(exception)
-	:
-		DeviceI2C(parent_devices, id_in, address_in)
+DeviceDS1731::DeviceDS1731(Interfaces *root_in, ID id_in, int address_in) throw(exception)
+	:	DeviceI2C(root_in, id_in, address_in)
 {
-	stringstream conv;
-
-	conv << "i2c:0x" << hex << setfill('0') << setw(2) << _address;
-	_set_shortname(conv.str());
-
-	conv.str("");
-	conv << "ds1731 temperature sensor at " << "i2c:0x" << hex << setfill('0') << setw(2) << _address;
-	_set_longname(conv.str());
-
-	if(!_probe())
-		throw(minor_exception(string("no ds1731 device found at ") + _shortname));
+	if(!probe())
+		throw(minor_exception(string("no ds1731 device found at ") + Util::int_to_string(address)));
 }
 
 DeviceDS1731::~DeviceDS1731() throw()
 {
 }
 
-bool DeviceDS1731::_probe() throw()
+string DeviceDS1731::name_short_static() throw()
 {
-	stringstream			conv;
+	return("ds1731");
+}
+
+string DeviceDS1731::name_long_static() throw()
+{
+	return("DS1731 temperature sensor");
+}
+
+string DeviceDS1731::name_short() const throw()
+{
+	return(name_short_static());
+}
+
+string DeviceDS1731::name_long() const throw()
+{
+	return(name_long_static());
+}
+
+double DeviceDS1731::read(Control *) throw(exception)
+{
 	Util::byte_array	out;
-	ControlDS1731			*control = 0;
+	bool				negative;
+	int					temp_hex;
+	double				temp;
+
+	// "w aa r 02 p" read temperature
+	out = command("w aa r 02 p");
+
+	if(out.size() != 2)
+		throw(minor_exception("read_ds1731: invalid reply"));
+
+	negative	= !!(out[0] & 0x80);
+	temp_hex	= (((out[0] & 0x7f) << 8) | (out[1] & 0xf0)) >> 4;
+	temp		= double(temp_hex) * 0.0625;
+
+	if(negative)
+		temp = 0 - temp;
+
+	return(temp);
+}
+
+bool DeviceDS1731::probe() throw()
+{
+	Util::byte_array out;
 
 	try
 	{
@@ -74,22 +103,35 @@ bool DeviceDS1731::_probe() throw()
 
 		if(out.size() != 1)
 			throw(minor_exception("incorrect length in reply"));
-
-		control = new ControlDS1731(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
-										-55, 125, "˙C", 2);
 	}
 	catch(minor_exception e)
 	{
-		dlog("ds1731 not found: %s\n", e.message.c_str());
+		Util::dlog("ds1731 not found: %s\n", e.message.c_str());
+		return(false);
 	}
 
-	if(!control)
-		return(false);
-
-	dlog("probe: ds1731 detected\n");
-
-	_enumerator++;
-	_controls.add(control);
-
+	Util::dlog("probe: ds1731 detected\n");
 	return(true);
+}
+
+void DeviceDS1731::find_controls() throw(exception)
+{
+	Control			*control = 0;
+
+	try
+	{
+		Control::capset cp;
+		cp.set(Control::cap_canread);
+
+		control = new Control(root, ID(id.interface, id.device, 1, 1),
+				-55, 125, "˙C", 2, cp, 0, 0,
+				"temp", "Temperature sensor");
+	}
+	catch(minor_exception e)
+	{
+		Util::dlog("CC ds1731 controls not found: %s\n", e.message.c_str());
+	}
+
+	if(control)
+		controls.add(control);
 }

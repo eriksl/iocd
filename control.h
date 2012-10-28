@@ -4,82 +4,86 @@
 #include <string>
 using std::string;
 
-class Interface;
-class Devices;
-class Device;
-class Controls;
+#include <bitset>
+using std::bitset;
 
-#include "identity.h"
+class Interfaces;
+class Device;
+
+#include "id.h"
 #include "exception.h"
 #include "util.h"
 
-class Control : public Identity
+class Control
 {
 	public:
 
-				Control(Controls *parent_controls, const Identity &id,
-						double min, double max,
-						string unit, int precision)		throw(exception);
-		virtual	~Control()								throw();
+		enum
+		{
+			cap_isdigital,
+			cap_canread,
+			cap_canwrite,
+			cap_cancount,
+			cap_cansoftpwm,
+			cap_canhardpwm
+		};
 
-		virtual	double	read()					throw(exception);
-		virtual	void	write(double)			throw(exception);
-		virtual	double	readwrite(double)		throw(exception);
-		virtual	int		readcounter()			throw(exception);
-		virtual	int		readresetcounter()		throw(exception);
-		virtual int		readpwmmode()			throw(exception);
-		virtual	void	writepwmmode(int)		throw(exception);
-		virtual string	readpwmmode_string()	throw(exception);
+		typedef bitset<8> capset;
+
+		friend class DeviceAtmel;
+		friend class DeviceDigipicco;
+
+				Control(Interfaces *parent_controls, ID,
+						double min, double max, string unit, int precision,
+						const capset &caps, int type, int index,
+						string name, string description)		throw(exception);
+
+		const	ID			id;
+		const	double		min;
+		const	double		max;
+		const	string		unit;
+		const	int			precision;
+		const	int			type;
+		const	capset		caps;
+		const	int			index;
+		const	string		name_short;
+		const	string		name_long;
+		const	string		control_id;
+
+		string	min_string()			const	throw();
+		string	max_string()			const	throw();
+		string	precision_string()		const	throw();
+		string	capabilities()			const	throw();
+		string	type_string()			const	throw();
+		string	index_string()			const	throw();
+
+		bool	isdigital()				const	throw();
+		bool	canread()				const	throw();
+		bool	canwrite()				const	throw();
+		bool	cancount()				const	throw();
+		bool	canpwm()				const	throw();
+		bool	cansoftpwm()			const	throw();
+		bool	canhardpwm()			const	throw();
+
+		double	read()							throw(exception);
+		void	write(double)					throw(exception);
+		double	readwrite(double)				throw(exception);
+		int		readcounter()					throw(exception);
+		int		readresetcounter()				throw(exception);
+		int		readpwmmode()					throw(exception);
+		void	writepwmmode(int)				throw(exception);
 
 		string	read_string()					throw(exception);
 		string	readwrite_string(double)		throw(exception);
 		string	readcounter_string()			throw(exception);
 		string	readresetcounter_string()		throw(exception);
-
-		double	min()					const	throw();
-		string	min_string()			const	throw();
-		double	max()					const	throw();
-		string	max_string()			const	throw();
-		int		precision()				const	throw();
-		string	precision_string()		const	throw();
-		string	unit()					const	throw();
-		string	properties()			const	throw();
-
-		bool	canread()				const	throw();
-		bool	canwrite()				const	throw();
-		bool	cancount()				const	throw();
-		bool	canpwm()				const	throw();
-		bool	isdigital()				const	throw();
-
-		Controls*	controls()					throw();
-		Device*		device()					throw();
-		Devices*	devices()					throw();
-		Interface*	interface()					throw();
-
-	protected:
-
-		typedef enum
-		{
-			cp_canread		= 1 << 0,
-			cp_canwrite		= 1 << 1,
-			cp_cancount		= 1 << 2,
-			cp_canpwm		= 1 << 3,
-			cp_isdigital	= 1 << 4
-		} control_props_t;
-
-		Controls		*_controls;
-		double			_min;
-		double			_max;
-		string			_unit;
-		control_props_t	_properties;
-		int				_precision;
-
-		Util::byte_array _command(string cmd, int timeout = 200, int chunks = 1) throw(exception); 
+		string	readpwmmode_string()			throw(exception);
 
 	private:
 
-		static string	_int_to_string(int value)							throw();
-		static string	_float_to_string(double value, int precision = 0)	throw();
-};
+		Interfaces* const	root;
 
+		Device*				parent()												throw(exception);
+		Util::byte_array	command(string cmd, int timeout = 200, int chunks = 1)	throw(exception); 
+};
 #endif

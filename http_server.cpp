@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "http_server.h"
-#include "syslog.h"
+#include "util.h"
 #include "exception.h"
 #include "cppstreams.h"
 
@@ -27,7 +27,7 @@ HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(exception
 	page_dispatcher_map["/quit"]			=	&HttpServer::page_dispatcher_quit;
 	page_dispatcher_map["/style.css"]		=	&HttpServer::page_dispatcher_stylecss;
 
-	dlog("start HttpServer\n");
+	Util::dlog("start HttpServer\n");
 
 	daemon_handle_ipv4 = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION | MHD_USE_DEBUG,
 			tcp_port, 0, 0, &HttpServer::access_handler_callback, this,
@@ -48,7 +48,7 @@ HttpServer::HttpServer(Interfaces * interfaces_in, int tcp_port) throw(exception
 
 HttpServer::~HttpServer() throw()
 {
-	dlog("stop HttpServer\n");
+	Util::dlog("stop HttpServer\n");
 	MHD_stop_daemon(daemon_handle_ipv6);
 	daemon_handle_ipv6 = 0;
 
@@ -202,7 +202,7 @@ int HttpServer::access_handler(struct MHD_Connection * connection,
 		}
 		catch(major_exception e)
 		{
-			vlog("http_server: receive major exception: %s\n", e.message.c_str());
+			Util::vlog("http_server: receive major exception: %s\n", e.message.c_str());
 		}
 
 		_interfaces->signal(Interfaces::signal_major_error);

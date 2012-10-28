@@ -1,51 +1,251 @@
 #include "device_atmel.h"
-#include "control_atmel.h"
-#include "syslog.h"
+#include "control.h"
 #include "cppstreams.h"
 #include "util.h"
 
-DeviceAtmel::DeviceAtmel(Devices *parent_devices,
-			const Identity &id_in, int address_in) throw(exception)
+DeviceAtmel::DeviceAtmel(Interfaces *root_in, ID id_in, int address_in) throw(exception)
 	:
-		DeviceI2C(parent_devices, id_in, address_in)
+		DeviceI2C(root_in, id_in, address_in)
 {
-	stringstream conv;
-	conv << "i2c:0x" << hex << setfill('0') << setw(2) << _address;
-	_set_shortname(conv.str());
-
-	if(!_probe())
-		throw(minor_exception(string("DeviceAtmel::DeviceAtmel: no device found at ") + _shortname));
-
-	conv.str("");
-	conv << "Atmel " << _modelname << "_" << _version << "." << _revision <<
-			" at " << "i2c:0x" << hex << setfill('0') << setw(2) << _address;
-	_set_longname(conv.str());
+	if(!probe())
+		throw(minor_exception(string("no atmel device found at ") + Util::int_to_string(address)));
 }
 
 DeviceAtmel::~DeviceAtmel() throw()
 {
 }
 
-Util::byte_array DeviceAtmel::_getcontrol(int cmd) throw(exception)
+string DeviceAtmel::name_short_static() throw()
 {
-	stringstream		in;
-	Util::byte_array	out;
-
-	// w 07 xx 00: request controls
-
-	in << "w 07 " << hex << setfill('0') << setw(2) << cmd;
-	out = command(in.str());
-
-	if(out.size() != 8)
-		throw(minor_exception("DeviceAtmel::getcontrol: cmd read error"));
-
-	if(out[1] != 0x07)
-		throw(minor_exception("DeviceAtmel::getcontrol: device returns error code"));
-
-	return(out);
+	return(string("atmel"));
 }
 
-bool DeviceAtmel::_probe() throw()
+string DeviceAtmel::name_long_static() throw()
+{
+	return(string("Atmel ATtiny"));
+}
+
+string DeviceAtmel::name_short() const throw()
+{
+	return(name_short_static());
+}
+
+string DeviceAtmel::name_long() const throw()
+{
+	return(name_long_static());
+}
+
+double DeviceAtmel::read(Control *control) throw(exception)
+{
+	Util::byte_array bytes;
+
+	switch(control->type)
+	{
+		case(DeviceAtmel::digital_input):
+		{
+			Util::dlog("query digital input\n");
+			bytes = query(0x30, control->index, 4);
+			return(double(bytes[2]));
+		}
+
+		case(DeviceAtmel::analog_input):
+		{
+			Util::dlog("query analog input\n");
+			bytes = query(0xc0, control->index, 3);
+			bytes = query(0x01, 0, 5);
+			return(double((bytes[2] << 8) | (bytes[3])));
+		}
+
+		case(DeviceAtmel::digital_output):
+		{
+			Util::dlog("query digital output\n");
+			bytes = query(0x50, control->index, 4);
+			return(double(bytes[2]));
+		}
+
+		case(DeviceAtmel::pwm_output):
+		{
+			Util::dlog("query pwm output\n");
+			bytes = query(0x90, control->index, 5);
+			return(double((bytes[2] << 8) | (bytes[3])));
+		}
+
+		default:
+		{
+			throw(minor_exception("DeviceAtmel::read: invalid operation for control"));
+		}
+	}
+
+	return(-1);
+}
+
+void DeviceAtmel::write(Control *control, double value_in) throw(exception)
+{
+	int value = int(value_in);
+
+	if((value < control->min) || (value > control->max))
+		throw(minor_exception("write control: value out of range"));
+
+	switch(control->type)
+	{
+		case(DeviceAtmel::digital_output):
+		{
+			Util::dlog("query write digital output\n");
+			query(0x40, control->index, 4, value & 0xff);
+			break;
+		}
+
+		case(DeviceAtmel::pwm_output):
+		{
+			Util::dlog("query write pwm output\n");
+			query(0x80, control->index, 3, (value & 0xff00) >> 8, value & 0x00ff);
+			break;
+		}
+
+		default:
+		{
+			throw(minor_exception("DeviceAtmel::write: invalid operation for control"));
+		}
+	}
+}
+
+double DeviceAtmel::readwrite(Control *control, double value) throw(exception)
+{
+	double oldvalue = DeviceAtmel::read(control);
+	DeviceAtmel::write(control, value);
+	return(oldvalue);
+}
+
+int DeviceAtmel::readcounter(Control *control) throw(exception)
+{
+	Util::byte_array bytes;
+
+	switch(control->type)
+	{
+		case(DeviceAtmel::digital_input):
+		{
+			Util::dlog("query: readcounter\n");
+			bytes = query(0x10, control->index, 7);
+			return( ((bytes[2] & 0xff000000) >> 24) |
+					((bytes[3] & 0x00ff0000) >> 16) |
+					((bytes[4] & 0x0000ff00) >>  8) |
+					((bytes[5] & 0x000000ff) >>  0));
+		}
+
+		default:
+		{
+			throw(minor_exception("DeviceAtmel::readcounter: invalid operation for control"));
+		}
+	}
+	
+	return(-1);
+}
+
+int DeviceAtmel::readresetcounter(Control *control) throw(exception)
+{
+	Util::byte_array bytes;
+
+	switch(control->type)
+	{
+		case(DeviceAtmel::digital_input):
+		{
+			bytes = query(0x20, control->index, 7);
+			return( ((bytes[2] & 0xff000000) >> 24) |
+					((bytes[3] & 0x00ff0000) >> 16) |
+					((bytes[4] & 0x0000ff00) >>  8) |
+					((bytes[5] & 0x000000ff) >>  0));
+		}
+
+		default:
+		{
+			throw(minor_exception("DeviceAtmel::readresetcounter: invalid operation for control"));
+		}
+	}
+	
+	return(-1);
+}
+
+int DeviceAtmel::readpwmmode(Control *control) throw(exception)
+{
+	Util::byte_array	bytes;
+	int					mode;
+
+	switch(control->type)
+	{
+		case(DeviceAtmel::digital_output):
+		{
+			bytes = query(0x70, control->index, 4);
+			mode = bytes[2];
+
+			if(mode == 4)
+				mode = 3;
+
+			return(mode);
+		}
+
+		case(DeviceAtmel::pwm_output):
+		{
+			bytes = query(0xb0, control->index, 4);
+			mode = bytes[2];
+
+			if(mode == 4)
+				mode = 3;
+
+			return(mode);
+		}
+
+		default:
+		{
+			throw(string("DeviceAtmel::readpwmmode: invalid operation for control"));
+		}
+	}
+
+	return(-1);
+}
+
+void DeviceAtmel::writepwmmode(Control *control, int value) throw(exception)
+{
+	if((value < 0) || (value > 3))
+		throw(minor_exception("write control: pwm mode out of range"));
+
+	switch(control->type)
+	{
+		case(DeviceAtmel::digital_output):
+		{
+			query(0x60, control->index, 4, value & 0xff);
+			break;
+		}
+
+		case(DeviceAtmel::pwm_output):
+		{
+			query(0xa0, control->index, 4, value & 0xff);
+			break;
+		}
+
+		default:
+		{
+			throw(minor_exception("DeviceAtmel::writepwmmode: invalid operation for control"));
+		}
+	}
+}
+
+string DeviceAtmel::readpwmmode_string(Control *control) throw(exception)
+{
+	int mode = readpwmmode(control);
+
+	switch(mode)
+	{
+		case(0): return("off");
+		case(1): return("down");
+		case(2): return("up");
+		case(3): return("up/down");
+		default: {}
+	}
+
+	return("invalid");
+}
+
+bool DeviceAtmel::probe() throw()
 {
 	stringstream		conv;
 	Util::byte_array	in;
@@ -57,7 +257,7 @@ bool DeviceAtmel::_probe() throw()
 		in = command("w 00");
 
 		if(in.size() != 24)
-			throw(minor_exception("DeviceAtmel::_probe: invalid length"));
+			throw(minor_exception("DeviceAtmel::probe: invalid length"));
 
 		if((in[1] != 0x00))
 			throw(minor_exception("DeviceAtmel::_proble: device returns error code"));
@@ -66,149 +266,169 @@ bool DeviceAtmel::_probe() throw()
 			throw(minor_exception("device does not identify as atmel"));
 
 		if((in[4] > 3) && (in[4] < 7))
-			_model = in[4];
+			model = in[4];
 		else
 			throw(minor_exception("unknown atmel model"));
 
-		_version	= in[5];
-		_revision	= in[6];
+		version		= in[5];
+		revision	= in[6];
 
 		for(ix = 7; ix < 24; ix++)
 		{
 			if(in[ix] == 0)
 				break;
-			_modelname += (char)in[ix];
+			modelname += (char)in[ix];
 		}
+	}
+	catch(minor_exception e)
+	{
+		Util::dlog("probe atmel: %s\n", e.message.c_str());
+		return(false);
+	}
 
-		dlog("probe: %s detected\n", _modelname.c_str());
+	Util::dlog("probe atmel: detected %s\n", modelname.c_str());
+	return(true);
+}
 
-		int						min, max;
-		int						nrcontrols;
-		ControlAtmel 			*control;
+void DeviceAtmel::find_controls() throw()
+{
+	Util::byte_array	in;
+	int					ix;
+	int					min, max;
+	int					nrcontrols;
+	Control				*control;
 
-		in			= _getcontrol(0);
+	try
+	{
+		in			= getcontrol(0);
 		nrcontrols	= in[2];
+		control		= 0;
 
-		dlog("probe: found %d digital inputs\n", nrcontrols);
+		Util::dlog("DD atmel: found %d digital inputs\n", nrcontrols);
 
 		min = 0;
 		max = (in[3] << 24) | (in[4] << 16) | (in[5] << 8) | in[6];
 
 		for(ix = 0; ix < nrcontrols; ix++)
 		{
-			control = 0;
+			Control::capset cc;
 
-			try
-			{
-				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
-						min, max, "", 0, ControlAtmel::digital_input, ix);
-			}
-			catch(minor_exception e)
-			{
-				dlog("add atmel digital input: %s\n", e.message.c_str());
-			}
+			cc.set(Control::cap_isdigital);
+			cc.set(Control::cap_canread);
+			cc.set(Control::cap_cancount);
 
-			if(control)
-			{
-				_enumerator++;
-				_controls.add(control);
-			}
-		}
-
-		in			= _getcontrol(1);
-		nrcontrols	= in[2];
-
-		dlog("probe: found %d analog inputs\n", nrcontrols);
-
-		min = (in[3] << 8) | (in[4] << 0);
-		max = (in[5] << 8) | (in[6] << 0);
-
-		for(ix = 0; ix < nrcontrols; ix++)
-		{
-			control = 0;
-
-			try
-			{
-				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
-						min, max, "", 0, ControlAtmel::analog_input, ix);
-			}
-			catch(minor_exception e)
-			{
-				dlog("add atmel analog input: %s\n", e.message.c_str());
-			}
+			control = new Control(root,
+					ID(id.interface, id.device, DeviceAtmel::digital_input, ix + 1),
+					min, max, "", 0, cc, DeviceAtmel::digital_input, ix,
+					"din", "Digital input");
 
 			if(control)
-			{
-				_enumerator++;
-				_controls.add(control);
-			}
-		}
-
-		in			= _getcontrol(2);
-		nrcontrols	= in[2];
-
-		dlog("probe: found %d digital outputs\n", nrcontrols);
-
-		min = (in[3] << 8) | (in[4] << 0);
-		max = (in[5] << 8) | (in[6] << 0);
-
-		for(ix = 0; ix < nrcontrols; ix++)
-		{
-			control = 0;
-
-			try
-			{
-				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
-						min, max, "", 0, ControlAtmel::digital_output, ix);
-			}
-			catch(minor_exception e)
-			{
-				dlog("add atmel digital output: %s\n", e.message.c_str());
-			}
-
-			if(control)
-			{
-				_enumerator++;
-				_controls.add(control);
-			}
-		}
-
-		in			= _getcontrol(3);
-		nrcontrols	= in[2];
-
-		dlog("probe: found %d pwm outputs\n", nrcontrols);
-
-		min = (in[3] << 8) | (in[4] << 0);
-		max = (in[5] << 8) | (in[6] << 0);
-
-		for(ix = 0; ix < nrcontrols; ix++)
-		{
-			control = 0;
-
-			try
-			{
-				control = new ControlAtmel(&_controls, Identity(_generation + 1, _id, _enumerator, path()),
-						min, max, "", 0, ControlAtmel::pwm_output, ix);
-			}
-			catch(minor_exception e)
-			{
-				dlog("add atmel pwm output: %s\n", e.message.c_str());
-			}
-
-			if(control)
-			{
-				_enumerator++;
-				_controls.add(control);
-			}
+				controls.add(control);
 		}
 	}
 	catch(minor_exception e)
 	{
-		dlog("DeviceAtmel::_probe: %s\n", e.message.c_str());
-		return(false);
+		Util::dlog("DD atmel: add digital input: %s\n", e.message.c_str());
 	}
 
-	return(true);
+	try
+	{
+		in			= getcontrol(1);
+		nrcontrols	= in[2];
+		control		= 0;
+
+		Util::dlog("DD atmel: found %d analog inputs\n", nrcontrols);
+
+		min = (in[3] << 8) | (in[4] << 0);
+		max = (in[5] << 8) | (in[6] << 0);
+
+		for(ix = 0; ix < nrcontrols; ix++)
+		{
+			Control::capset cc;
+
+			cc.set(Control::cap_canread);
+
+			control = new Control(root,
+					ID(id.interface, id.device, DeviceAtmel::analog_input, ix + 1),
+					min, max, "", 0, cc, DeviceAtmel::analog_input, ix,
+					"ain", "Analog input");
+			if(control)
+				controls.add(control);
+		}
+	}
+	catch(minor_exception e)
+	{
+		Util::dlog("DD atmel: analog input: %s\n", e.message.c_str());
+	}
+
+	try
+	{
+		in			= getcontrol(2);
+		nrcontrols	= in[2];
+		control		= 0;
+
+		Util::dlog("DD atmel: found %d digital outputs\n", nrcontrols);
+
+		min = (in[3] << 8) | (in[4] << 0);
+		max = (in[5] << 8) | (in[6] << 0);
+
+		for(ix = 0; ix < nrcontrols; ix++)
+		{
+			Control::capset cc;
+
+			cc.set(Control::cap_isdigital);
+			cc.set(Control::cap_canread);
+			cc.set(Control::cap_canwrite);
+			cc.set(Control::cap_cansoftpwm);
+
+			control = new Control(root,
+					ID(id.interface, id.device, DeviceAtmel::digital_output, ix + 1),
+					min, max, "", 0, cc, DeviceAtmel::digital_output, ix,
+					"dout", "Digital output");
+
+			if(control)
+				controls.add(control);
+		}
+	}
+	catch(minor_exception e)
+	{
+		Util::dlog("DD atmel: add digital output: %s\n", e.message.c_str());
+	}
+
+	try
+	{
+		control		= 0;
+		in			= getcontrol(3);
+		nrcontrols	= in[2];
+
+		Util::dlog("DD atmel: found %d pwm outputs\n", nrcontrols);
+
+		min = (in[3] << 8) | (in[4] << 0);
+		max = (in[5] << 8) | (in[6] << 0);
+
+		for(ix = 0; ix < nrcontrols; ix++)
+		{
+			Control::capset cc;
+
+			cc.set(Control::cap_isdigital);
+			cc.set(Control::cap_canread);
+			cc.set(Control::cap_canwrite);
+			cc.set(Control::cap_canhardpwm);
+
+			control = new Control(root,
+					ID(id.interface, id.device, DeviceAtmel::pwm_output, ix + 1),
+					min, max, "", 0, cc, DeviceAtmel::pwm_output, ix,
+					"pwm", "PWM output");
+
+			if(control)
+				controls.add(control);
+		}
+
+	}
+	catch(minor_exception e)
+	{
+		Util::dlog("DD atmel: add pwm output: %s\n", e.message.c_str());
+	}
 }
 
 Util::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) throw(exception)
@@ -236,3 +456,49 @@ Util::byte_array DeviceAtmel::command(string cmd, int timeout, int chunks) throw
 
 	return(bytes);
 }
+
+Util::byte_array DeviceAtmel::getcontrol(int control) throw(exception)
+{
+	return(query(0x07, 0, 8, control));; 
+}
+
+Util::byte_array DeviceAtmel::query(int cmd, int index, int length, int param1, int param2, int param3, int param4) throw(exception)
+{
+	ostringstream		in;
+	Util::byte_array	bytes;
+
+	cmd = cmd | (index & 0x0f);
+
+	in << "w " << hex << setw(2) << setfill('0') << cmd;
+
+	if(param1 != -1)
+		in << " " << hex << setw(2) << setfill('0') << param1;
+
+	if(param2 != -1)
+		in << " " << hex << setw(2) << setfill('0') << param2;
+
+	if(param3 != -1)
+		in << " " << hex << setw(2) << setfill('0') << param3;
+
+	if(param4 != -1)
+		in << " " << hex << setw(2) << setfill('0') << param4;
+
+	try
+	{
+		bytes = command(in.str());
+	}
+	catch(minor_exception e)
+	{
+		Util::dlog("minor exception: %s\n", e.message.c_str());
+		throw(minor_exception(string("query: ") + e.message));
+	}
+
+	Util::dlog("length required: %d\n", length);
+	Util::dlog("length actual: %d\n", bytes.size());
+
+	if(bytes.size() != (size_t)length)
+		throw(minor_exception("query: invalid result length"));
+
+	return(bytes);
+}
+

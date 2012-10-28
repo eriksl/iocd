@@ -1,9 +1,7 @@
 #include "control.h"
 #include "controls.h"
-#include "syslog.h"
 
-Controls::Controls(Device *parent_device) throw()
-	:	_device(parent_device)
+Controls::Controls() throw()
 {
 }
 
@@ -11,48 +9,33 @@ Controls::~Controls() throw()
 {
 	iterator it;
 
-	for(it = _controls.begin(); it != _controls.end(); it++)
-		delete *it;
+	for(it = controls.begin(); it != controls.end(); it++)
+		delete it->second;
 
-	_controls.clear();
+	controls.clear();
 }
 
 Controls::iterator Controls::begin() throw()
 {
-	return(_controls.begin());
+	return(controls.begin());
 }
 
 Controls::iterator Controls::end() throw()
 {
-	return(_controls.end());
+	return(controls.end());
 }
 
-void Controls::add(Control* new_control) throw()
+void Controls::add(Control* control) throw()
 {
-	_controls.push_back(new_control);
+	controls[control->id] = control;
 }
 
-Control* Controls::find(string id) throw(exception)
+Control* Controls::find(ID id) throw(exception)
 {
-	Controls::iterator control;
+	Controls::iterator it;;
 
-	if(id.length() == 8)
-		id = id.substr(4,2);
+	if((it = controls.find(id)) == controls.end())
+		throw(minor_exception("find control: not found"));
 
-	if(id.length() != 2)
-		throw(minor_exception("find(control): id has invalid length"));
-
-	for(control = begin(); control != end(); control++)
-		if((**control).id().substr(4,2) == id)
-			break;
-
-	if(control == end())
-		throw(minor_exception("find(control): control not found"));
-
-	return(*control);
-}
-
-Device *Controls::device() throw()
-{
-	return(_device);
+	return(it->second);
 }

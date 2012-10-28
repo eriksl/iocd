@@ -4,16 +4,18 @@
 #include <string>
 using std::string;
 
-#include <vector>
-using std::vector;
+#include <map>
+using std::map;
 
 #include "exception.h"
+#include "id.h"
 
 class Interface;
 class Device;
 class Control;
 
 #include <pthread.h>
+#include <stdint.h>
 
 class Interfaces
 {
@@ -29,41 +31,38 @@ class Interfaces
 			signal_major_error
 		} signal_t;
 
-		typedef vector<Interface *>		interfaces_t;
-		typedef interfaces_t::iterator	iterator;
+		typedef map<ID, Interface *>		interfaces_t;
+		typedef interfaces_t::iterator		iterator;
 
 		Interfaces()								throw(exception);
-		virtual ~Interfaces()						throw();
+		~Interfaces()								throw();
 
 		iterator	begin()							throw();
 		iterator	end()							throw();
 		size_t		count()							throw();
-		Interface*	find(string id)					throw(exception);
-		Device*		find_device(string id)			throw(exception);
-		Control*	find_control(string id)			throw(exception);
-		Control*	find_control_by_name(string id)	throw(exception);
+
+		Interface*	find_interface(ID)				throw(exception);
+		Device*		find_device(ID)					throw(exception);
+		Control*	find_control(ID)				throw(exception);
 
 		signal_t	wait()							throw();
 		void		signal(signal_t value)			throw();
 
-	protected:
-
-		int				_enumerator;
-		interfaces_t	_interfaces;
+		static	Interfaces *instance;
 
 	private:
 
-		signal_t		_signal_value;
-		pthread_mutex_t	_signal_mutex;
-		pthread_cond_t	_signal_condition;
+		int					enumerator;
+		interfaces_t		interfaces;
+		signal_t			signal_value;
+		pthread_mutex_t		signal_mutex;
+		pthread_cond_t		signal_condition;
 
-		static	Interfaces	*__instance;
-		static	void		__sigint(int);
-		static	void		__sigquit(int);
+									void	probe_interfaces(void)			throw();
+		template<class InterfaceT>	void	probe_interface(string device)	throw();
 
-		void	_probe()			throw();
-		void	_probe_usb()		throw();
-		void	_probe_usb_elv()	throw();
+		static	void		sigint(int);
+		static	void		sigquit(int);
 };
 
 #endif

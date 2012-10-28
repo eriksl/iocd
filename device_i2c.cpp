@@ -2,13 +2,9 @@
 #include "cppstreams.h"
 #include "util.h"
 
-DeviceI2C::DeviceI2C(Devices *parent_devices, const Identity& id_in, int address_in) throw(exception)
-	:	Device(parent_devices, id_in),
-			_address(address_in)
-{
-}
-
-DeviceI2C::~DeviceI2C() throw()
+DeviceI2C::DeviceI2C(Interfaces *root_in, ID id_in, int address_in) throw(exception)
+	:	Device(root_in, id_in),
+			address(address_in)
 {
 }
 
@@ -17,8 +13,15 @@ Util::byte_array DeviceI2C::command(string cmd, int timeout, int chunks) throw(e
 	stringstream		in;
 	Util::byte_array	bytes;
 
-	in << "s " << hex << setfill('0') << setw(2) << (_address << 1) << " p " << cmd << " p";
+	in << "s " << hex << setfill('0') << setw(2) << (address << 1) << " p " << cmd << " p";
 	bytes = Device::command(in.str(), timeout, chunks);
 
 	return(bytes);
+}
+
+string DeviceI2C::device_id() const throw()
+{
+	ostringstream rv;
+	rv << name_short() << ":0x" << hex << setw(2) << setfill('0') << address;
+	return(rv.str());
 }

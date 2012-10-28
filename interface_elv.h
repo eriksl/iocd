@@ -1,23 +1,37 @@
 #ifndef _interface_elv_h_
 #define _interface_elv_h_
 
+#include <string>
+using std::string;
+
 #include "interface.h"
+
+class Interfaces;
 
 class InterfaceELV : public Interface
 {
 	public:
 
-		InterfaceELV(Interfaces *parent_interfaces, const Identity &id,
-				string device_node)				throw(exception);
+		friend class Interfaces;
 
-	protected:
+				InterfaceELV(Interfaces *root, ID id, string device_node)	throw(exception);
+				~InterfaceELV()												throw();
 
-		string	_command(const string &cmd, int timeout, int chunks) throw(exception);
+		static string name_short_static()	throw();
+		static string name_long_static()	throw();
+
+		string	name_short()										const	throw();
+		string	name_long()											const	throw();
+		string	interface_id()										const	throw();
 
 	private:
 
-									void	_open(string path)	throw(exception);
-		template<class ControlT>	void	_probe(int address)	throw();
+		string	device_node;
+
+		void	open(string path)												throw(exception);
+		string	interface_command(const string &cmd, int timeout, int chunks)	throw(exception);
+		void	find_devices()													throw();
+		template<class DeviceT> void probe_device(int address)					throw();
 };
 
 #endif

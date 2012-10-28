@@ -5,19 +5,35 @@
 #include "util.h"
 #include "exception.h"
 
-#include <string>
-using std::string;
+class Interfaces;
+class Control;
 
 class DeviceTSL2550 : public DeviceI2C
 {
 	public:
-		DeviceTSL2550(Devices*, const Identity &, int address)	throw(exception);
+
+		friend class InterfaceELV;
+
+		DeviceTSL2550(Interfaces *root, ID, int address)		throw(exception);
 		~DeviceTSL2550()										throw();
 
-	protected:
+		string	name_short()							const	throw();
+		string	name_long()								const	throw();
 
 	private:
 
-		bool	_probe()	throw();
+		string	name()											throw();
+		string	description()									throw();
+		double	read(Control *)									throw(exception);
+		bool	probe()											throw();
+		void	find_controls()									throw();
+		double	read_retry(int attempts, bool erange)			throw(exception);
+		double	read_range(bool erange)							throw(exception);
+		bool	adc2count(int in, int &out, bool &overflow)		throw();
+		double	count2lux(int ch0, int ch1, int multiplier)		throw();
+
+		static	string	name_short_static()						throw();
+		static	string	name_long_static()						throw();
+
 };
 #endif

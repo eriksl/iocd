@@ -1,11 +1,13 @@
 #ifndef _controls_h_
 #define _controls_h_
 
-#include <vector>
-using std::vector;
+#include <map>
+using std::map;
 
+#include "id.h"
 #include "exception.h"
 
+class Interfaces;
 class Device;
 class Control;
 
@@ -13,24 +15,26 @@ class Controls
 {
 	public:
 
-		typedef vector<Control *>		controls_t;
+		friend class DeviceAtmel;
+		friend class DeviceDigipicco;
+		friend class DeviceDS1731;
+		friend class DeviceTMP275;
+		friend class DeviceTSL2550;
+
+		typedef map<ID, Control *>		controls_t;
 		typedef controls_t::iterator	iterator;
 
-				Controls(Device *)		throw();
-		virtual ~Controls()				throw();
+				Controls()					throw();
+		virtual ~Controls()					throw();
 
-		iterator	begin()				throw();
-		iterator	end()				throw();
-		void		add(Control *)		throw();
-		Control *	find(string id)		throw(exception);
-		Device*		device()			throw();
-
-	protected:
+		iterator	begin()					throw();
+		iterator	end()					throw();
+		Control*	find(ID id)				throw(exception);
 
 	private:
 
-		Device		*_device;
-		controls_t	_controls;
+		void		add(Control *)			throw();
+		controls_t	controls;
 };
 
 #endif

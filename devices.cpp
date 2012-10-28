@@ -1,10 +1,8 @@
 #include "devices.h"
 #include "device.h"
-#include "identity.h"
-#include "syslog.h"
+#include "id.h"
 
-Devices::Devices(Interface *interface_in) throw(string)
-	: _interface(interface_in)
+Devices::Devices() throw(exception)
 {
 }
 
@@ -12,48 +10,36 @@ Devices::~Devices() throw()
 {
 	iterator it;
 
-	for(it = _devices.begin(); it != _devices.end(); it++)
-		delete *it;
+	for(it = devices.begin(); it != devices.end(); it++)
+		delete it->second;
 
-	_devices.clear();
+	devices.clear();
 }
 
 Devices::iterator Devices::begin() throw()
 {
-	return(_devices.begin());
+	return(devices.begin());
 }
 
 Devices::iterator Devices::end() throw()
 {
-	return(_devices.end());
+	return(devices.end());
 }
 
-Interface* Devices::interface() throw()
+void Devices::add(Device *device) throw()
 {
-	return(_interface);
+	devices[device->id] = device;
 }
 
-void Devices::add(Device * device) throw()
+Device* Devices::find_device(ID id) throw(exception)
 {
-	_devices.push_back(device);
-}
+	Devices::iterator it;
 
-Device* Devices::find(string id) throw(string)
-{
-	Devices::iterator device;
+	id.control_type		= 0;
+	id.control_index	= 0;
 
-	if(id.length() == 8)
-		id = id.substr(2, 2);
+	if((it = devices.find(id)) == devices.end())
+		throw(minor_exception("DS find_device: device not found"));
 
-	if(id.length() != 2)
-		throw(string("find(device): id has invalid length"));
-
-	for(device = begin(); device != end(); device++)
-		if((**device).id().substr(2,2) == id)
-			break;
-
-	if(device == end())
-		throw(string("find(device): device not found"));
-
-	return(*device);
+	return(it->second);
 }

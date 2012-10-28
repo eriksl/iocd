@@ -5,9 +5,8 @@
 #include "device.h"
 #include "controls.h"
 #include "control.h"
-#include "syslog.h"
 #include "exception.h"
-#include "iocd.h"
+#include "util.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -29,7 +28,7 @@ static void log_exception(string type, string error)
 		errormessage += strerror(errno);
 	}
 
-	vlog("%s\n", errormessage.c_str());
+	Util::vlog("%s\n", errormessage.c_str());
 }
 
 int main(int argc, char ** argv)
@@ -46,7 +45,7 @@ int main(int argc, char ** argv)
 		{
 			case('d'):
 			{
-				debug = true;
+				Util::debug = true;
 				foreground = true;
 				break;
 			}
@@ -82,13 +81,12 @@ int main(int argc, char ** argv)
 
 	if(!foreground)
 	{
-		isdaemon = true;
+		Util::isdaemon = true;
 		daemon(0, 0);
+		setresuid(65534, 65534, 65534);
 	}
 	else
-		isdaemon = false;
-
-	setresuid(65534, 65534, 65534);
+		Util::isdaemon = false;
 
 	for(;;)
 	{
@@ -101,37 +99,32 @@ int main(int argc, char ** argv)
 
 			for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
 			{
-				vlog("interface: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
-						(**interface).longname().c_str(),
-						(**interface).shortname().c_str(),
-						(**interface).path().c_str(),
-						(**interface).ordinal().c_str(),
-						(**interface).parent_id().c_str(),
-						(**interface).id().c_str());
+				Util::vlog("interface: [l:%s] [s:%s] [i:%s] {%s}\n",
+						interface->second->name_long().c_str(),
+						interface->second->name_short().c_str(),
+						interface->second->interface_id().c_str(),
+						string(interface->second->id).c_str());
 
-				for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
+				for(device = interface->second->interface_devices()->begin(); device != interface->second->interface_devices()->end(); device++)
 				{
-					vlog("    device: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s}\n",
-							(**device).longname().c_str(),
-							(**device).shortname().c_str(),
-							(**device).path().c_str(),
-							(**device).ordinal().c_str(),
-							(**device).parent_id().c_str(),
-							(**device).id().c_str());
+					Util::vlog("    device: [l:%s] [s:%s] [i:%s] {%s}\n",
+							device->second->name_long().c_str(),
+							device->second->name_short().c_str(),
+							device->second->device_id().c_str(),
+							string(device->second->id).c_str());
 
-					for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
+					for(control = device->second->device_controls()->begin(); control != device->second->device_controls()->end(); control++)
 					{
-						vlog("            control: [l:%s] [s:%s] [p:%s] {o:%s/p:%s/i:%s} (min:%s-max:%s unit:%s) (props:%s) (value = %s) (counter = %s)\n",
-								(**control).longname().c_str(),
-								(**control).shortname().c_str(),
-								(**control).path().c_str(),
-								(**control).ordinal().c_str(),
-								(**control).parent_id().c_str(),
-								(**control).id().c_str(),
-								(**control).min_string().c_str(), (**control).max_string().c_str(), (**control).unit().c_str(),
-								(**control).properties().c_str(),
-								(**control).canread()  ? (**control).read_string().c_str() : "",
-								(**control).cancount() ? (**control).readresetcounter_string().c_str() : "");
+						Util::vlog("        control: [l:%s] [s:%s] [i:%s] [o:%s] [%s] (min:%s-max:%s unit:%s) (props:%s) (value = %s) (counter = %s)\n",
+								control->second->name_long.c_str(),
+								control->second->name_short.c_str(),
+								control->second->control_id.c_str(),
+								control->second->index_string().c_str(),
+								string(control->second->id).c_str(),
+								control->second->min_string().c_str(), control->second->max_string().c_str(), control->second->unit.c_str(),
+								control->second->capabilities().c_str(),
+								control->second->canread()  ? control->second->read_string().c_str() : "",
+								control->second->cancount() ? control->second->readresetcounter_string().c_str() : "");
 					}
 				}
 			}
@@ -141,18 +134,20 @@ int main(int argc, char ** argv)
 
 			if(interfaces.count() < interfaces_required)
 			{
-				vlog("insufficient number of interfaces detected\n");
+				Util::vlog("insufficient number of interfaces detected\n");
 				signal(SIGINT, SIG_DFL);
 				signal(SIGQUIT, SIG_DFL);
 				sleep(1);
 				continue;
 			}
 
-			HttpServer httpserver(&interfaces, 28000);
+			{
+				HttpServer httpserver(&interfaces, 28000);
 
-			dlog("before wait\n");
-			waitval = interfaces.wait();
-			dlog("wait returned %d\n", waitval);
+				Util::dlog("before wait\n");
+				waitval = interfaces.wait();
+				Util::dlog("wait returned %d\n", waitval);
+			}
 
 			if(waitval == Interfaces::signal_user_quit)
 				throw(fatal_exception("quit by user request"));
@@ -201,7 +196,7 @@ int main(int argc, char ** argv)
 		}
 	}
 
-	dlog("exit\n");
+	Util::dlog("exit\n");
 
 	return(0);
 }

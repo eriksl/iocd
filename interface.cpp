@@ -1,63 +1,25 @@
 #include "interface.h"
-#include "devices.h"
-#include "identity.h"
 #include "cppstreams.h"
-#include "syslog.h"
+#include "util.h"
 
-#include "unistd.h"
+#include <unistd.h>
 
-Interface::Interface(Interfaces *parent_interfaces, const Identity &id_in) throw(exception)
-	: Identity(id_in),
-			_fd(-1),
-			_enumerator(1),
-			_devices(this),
-			_interfaces(parent_interfaces)
+Interface::Interface(Interfaces *root_in, ID id_in) throw(exception)
+	:
+		id(id_in),
+		root(root_in),
+		fd(-1),
+		enumerator(1)
 {
-	_mutex_valid	= false;
-	pthread_mutex_init(&_mutex, 0);
-	_mutex_valid	= true;
+	pthread_mutex_init(&mutex, 0);
 }
 
 Interface::~Interface() throw()
 {
-	if(_fd >= 0)
-		::close(_fd);
+	if(fd >= 0)
+		::close(fd);
 
-	if(_mutex_valid)
-	{
-		pthread_mutex_destroy(&_mutex);
-		_mutex_valid = false;
-	}
-}
-
-void Interface::_lock() throw(exception)
-{
-	//dlog("--> LOCK\n");
-
-	if(_mutex_valid)
-		pthread_mutex_lock(&_mutex);
-	else
-		throw(minor_exception("Interface::lock: mutex invalid"));
-}
-
-void Interface::_unlock() throw(exception)
-{
-	//dlog("<-- UNLOCK\n");
-
-	if(_mutex_valid)
-		pthread_mutex_unlock(&_mutex);
-	else
-		throw(minor_exception("Interface::unlock: mutex invalid"));
-}
-
-Interfaces* Interface::interfaces() const throw()
-{
-	return(_interfaces);
-}
-
-Devices* Interface::devices() throw()
-{
-	return(&_devices);
+	pthread_mutex_destroy(&mutex);
 }
 
 string Interface::command(string cmd, int timeout, int chunks) throw(exception)
@@ -66,15 +28,15 @@ string Interface::command(string cmd, int timeout, int chunks) throw(exception)
 
 	try
 	{
-		_lock();
-		result = _command(cmd, timeout, chunks);
-		_unlock();
+		lock();
+		result = interface_command(cmd, timeout, chunks);
+		unlock();
 	}
 	catch(...)
 	{
 		try
 		{
-			_unlock();
+			unlock();
 		}
 		catch(...)
 		{
@@ -84,4 +46,24 @@ string Interface::command(string cmd, int timeout, int chunks) throw(exception)
 	}
 
 	return(result);
+}
+
+Devices* Interface::interface_devices() throw()
+{
+	return(&devices);
+}
+
+void Interface::find_devices() throw(exception)
+{
+	throw(minor_exception("Device::find_devices called"));
+}
+
+void Interface::lock() throw(exception)
+{
+	pthread_mutex_lock(&mutex);
+}
+
+void Interface::unlock() throw(exception)
+{
+	pthread_mutex_unlock(&mutex);
 }

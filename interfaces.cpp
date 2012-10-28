@@ -1,25 +1,26 @@
 #include "interface.h"
-#include "controls.h"
 #include "control.h"
 #include "interfaces.h"
 #include "interface_elv.h"
 #include "device.h"
 #include "cppstreams.h"
-#include "syslog.h"
+#include "util.h"
 
 #include <signal.h>
 
 Interfaces::Interfaces() throw(exception)
-	:	_enumerator(1), _signal_value(Interfaces::signal_none)
+	:
+		enumerator(1),
+		signal_value(Interfaces::signal_none)
 {
-	pthread_cond_init(&_signal_condition, 0);
-	pthread_mutex_init(&_signal_mutex, 0);
+	pthread_cond_init(&signal_condition, 0);
+	pthread_mutex_init(&signal_mutex, 0);
 
-	__instance = this;
-	::signal(SIGINT, __sigint);
-	::signal(SIGQUIT, __sigquit);
+	instance = this;
+	::signal(SIGINT, sigint);
+	::signal(SIGQUIT, sigquit);
 
-	_probe();
+	probe_interfaces();
 }
 
 Interfaces::~Interfaces() throw()
@@ -29,178 +30,128 @@ Interfaces::~Interfaces() throw()
 
 	iterator it;
 
-	for(it = _interfaces.begin(); it != _interfaces.end(); it++)
-		delete *it;
+	for(it = interfaces.begin(); it != interfaces.end(); it++)
+		delete it->second;
 
-	_interfaces.clear();
+	interfaces.clear();
 
-	pthread_mutex_destroy(&_signal_mutex);
-	pthread_cond_destroy(&_signal_condition);
+	pthread_mutex_destroy(&signal_mutex);
+	pthread_cond_destroy(&signal_condition);
 }
 
 Interfaces::iterator Interfaces::begin() throw()
 {
-	return(_interfaces.begin());
+	return(interfaces.begin());
 }
 
 Interfaces::iterator Interfaces::end() throw()
 {
-	return(_interfaces.end());
+	return(interfaces.end());
 }
 
 size_t Interfaces::count() throw()
 {
-	return(_interfaces.size());
+	return(interfaces.size());
 }
 
-Interface* Interfaces::find(string id) throw(exception)
+Interface* Interfaces::find_interface(ID id) throw(exception)
 {
-	Interfaces::iterator interface;
+	interfaces_t::iterator it;
 
-	if(id.length() == 8)
-		id = id.substr(0, 2);
+	id.device			= 0;
+	id.control_type		= 0;
+	id.control_index	= 0;
 
-	if(id.length() != 2)
-		throw(minor_exception("find(interface): id has invalid length"));
+	if((it = interfaces.find(id)) == interfaces.end())
+		throw(minor_exception("find_interface: interface not found"));
 
-	for(interface = begin(); interface != end(); interface++)
-		if((**interface).id().substr(0,2) == id)
-			break;
-
-	if(interface == end())
-		throw(minor_exception("find(interface): interface not found"));
-
-	return(*interface);
+	return(it->second);
 }
 
-Device* Interfaces::find_device(string id) throw(exception)
+Device* Interfaces::find_device(ID id) throw(exception)
 {
-	Interface *interface = find(id);
-	return(interface->devices()->find(id));
+	Interface *interface = find_interface(id);
+	return(interface->devices.find_device(id));
 }
 
-Control* Interfaces::find_control(string id) throw(exception)
+Control* Interfaces::find_control(ID id) throw(exception)
 {
 	Device *device = find_device(id);
-	return(device->controls()->find(id));
+	return(device->controls.find(id));
 }
 
 Interfaces::signal_t Interfaces::wait() throw()
 {
 	signal_t rv;
 
-	pthread_mutex_lock(&_signal_mutex);
-	pthread_cond_wait(&_signal_condition, &_signal_mutex);
-	rv = _signal_value;
-	pthread_mutex_unlock(&_signal_mutex);
+	pthread_mutex_lock(&signal_mutex);
+	pthread_cond_wait(&signal_condition, &signal_mutex);
+	rv = signal_value;
+	pthread_mutex_unlock(&signal_mutex);
 
 	return(rv);
 }
 
 void Interfaces::signal(Interfaces::signal_t value) throw()
 {
-	pthread_mutex_lock(&_signal_mutex);
-	_signal_value = value;
-	pthread_cond_signal(&_signal_condition);
-	pthread_mutex_unlock(&_signal_mutex);
+	pthread_mutex_lock(&signal_mutex);
+	signal_value = value;
+	pthread_cond_signal(&signal_condition);
+	pthread_mutex_unlock(&signal_mutex);
 }
 
-Control* Interfaces::find_control_by_name(string id) throw(exception)
+void Interfaces::probe_interfaces() throw()
 {
-	Interfaces::iterator	interface;
-	Devices::iterator		device;
-	Controls::iterator		control;
-
-	for(interface = _interfaces.begin(); interface != _interfaces.end(); interface++)
-	{
-		for(device = (**interface).devices()->begin(); device != (**interface).devices()->end(); device++)
-		{
-			for(control = (**device).controls()->begin(); control != (**device).controls()->end(); control++)
-			{
-				if((**control).shortname() == id)
-					return(*control);
-
-				if((**control).longname() == id)
-					return(*control);
-
-				if((**control).path() == id)
-					return(*control);
-
-				if((**control).id() == id)
-					return(*control);
-			}
-		}
-	}
-
-	throw(minor_exception("control not found"));
-
-	return(0); // never reached
-}
-
-void Interfaces::_probe() throw()
-{
-	_probe_usb();
-}
-
-void Interfaces::_probe_usb() throw()
-{
-	_probe_usb_elv();
-}
-
-void Interfaces::_probe_usb_elv() throw()
-{
-	int				ix;
-	stringstream	rid;
-	InterfaceELV	*interface;
-	string			error;
-
-	dlog("probing elv interfaces\n");
+	int	ix;
 
 	for(ix = 0; ix < 2; ix++)
-	{
-		rid.str("");
-		rid << "/dev/ttyUSB" << ix;
-		interface = 0;
-
-		try
-		{
-			dlog("probe elv: trying %s\n", rid.str().c_str());
-			interface = new InterfaceELV(this, Identity(0, 0, _enumerator, ""), rid.str());
-		}
-		catch(minor_exception e)
-		{
-			error = e.message;
-		}
-		catch(...)
-		{
-			error = "<unspecified error>";
-		}
-
-		if(interface)
-		{
-			dlog("probe elv: successful probe for %s (%s)\n", interface->shortname().c_str(), interface->id().c_str());
-			_interfaces.push_back(interface);
-			_enumerator++;
-		}
-		else
-			dlog("probe elv: unsuccesful probe for %s\n", rid.str().c_str());
-	}
+		probe_interface<InterfaceELV>(string("/dev/ttyUSB") + Util::int_to_string(ix));
 }
 
-void Interfaces::__sigint(int)
+template<class InterfaceT> void Interfaces::probe_interface(string device_node) throw()
 {
-	dlog("SIGINT\n");
+	InterfaceT *interface = 0;
+	ID			id(enumerator++);
+	string		error;
+
+	try
+	{
+		Util::dlog("II probing for %s:%s\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
+		interface = new InterfaceT(this, id, device_node); 
+	}
+	catch(minor_exception e)
+	{
+		error = e.message;
+	}
+	catch(...)
+	{
+		error = "<unspecified error>";
+	}
+
+	if(interface)
+	{
+		Util::dlog("II probe for %s successful\n", interface->interface_id().c_str());
+		interfaces[id] = interface;
+		interface->find_devices();
+	}
+	else
+		Util::dlog("II probe %s at %s unsuccessful\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
+}
+
+void Interfaces::sigint(int)
+{
+	Util::dlog("SIGINT\n");
 	::signal(SIGINT, SIG_DFL);
 
-	Interfaces::__instance->signal(Interfaces::signal_user_keyint);
+	Interfaces::instance->signal(Interfaces::signal_user_keyint);
 }
 
-void Interfaces::__sigquit(int)
+void Interfaces::sigquit(int)
 {
-	dlog("SIGQUIT\n");
+	Util::dlog("SIGQUIT\n");
 	::signal(SIGQUIT, SIG_DFL);
 
-	Interfaces::__instance->signal(Interfaces::signal_user_keyquit);
+	Interfaces::instance->signal(Interfaces::signal_user_keyquit);
 }
 
-Interfaces* Interfaces::__instance = 0;
+Interfaces* Interfaces::instance = 0;

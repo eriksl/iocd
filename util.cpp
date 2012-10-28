@@ -1,6 +1,45 @@
 #include "util.h"
 #include "cppstreams.h"
 
+#include <errno.h>
+#include <stdarg.h>
+#include <syslog.h>
+#include <stdio.h>
+
+bool Util::isdaemon	= false;
+bool Util::debug	= false;
+
+void Util::vlog(const char * format, ...) throw()
+{
+    va_list ap;
+
+    va_start(ap, format);
+
+    if(isdaemon)
+        vsyslog(LOG_WARNING, format, ap);
+    else
+        vfprintf(stderr, format, ap);
+
+    va_end(ap);
+}
+
+void Util::dlog(const char * format, ...) throw()
+{
+    va_list ap;
+
+	if(debug)
+	{
+    	va_start(ap, format);
+
+    	if(isdaemon)
+        	vsyslog(LOG_DEBUG, format, ap);
+    	else
+        	vfprintf(stderr, format, ap);
+	}
+
+    va_end(ap);
+}
+
 int Util::parse_bytes(string str, byte_array & values) throw()
 {
 	stringstream	conv;
@@ -37,4 +76,30 @@ int Util::timespec_diff(timespec from, timespec to) throw()
 	}
 
 	return((temp.tv_sec * 1000) + (temp.tv_nsec / 1000000));
+}
+
+string Util::int_to_string(int in) throw()
+{
+	stringstream conv;
+	conv << in;
+	return(conv.str());
+}
+
+string Util::float_to_string(double value, int precision) throw()
+{
+	stringstream conv;
+	conv << fixed << setprecision(precision) << value;
+	return(conv.str());
+}
+
+string Util::remove_newlines(string in) throw()
+{
+	string::iterator	it;
+	string				rv;
+
+	for(it = in.begin(); it != in.end(); it++)
+		if((*it != '\n') && (*it != '\r'))
+			rv += *it;
+
+	return(rv);
 }

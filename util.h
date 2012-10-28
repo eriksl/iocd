@@ -16,7 +16,15 @@ class Util
 
 		typedef vector<uint8_t> byte_array;
 
-		static int	parse_bytes(string str, byte_array & values)					throw();
-		static int	timespec_diff(timespec from, timespec to)						throw();
+		static	bool	isdaemon;
+		static	bool	debug;
+
+		static void		vlog(const char * format, ...)					throw();
+		static void		dlog(const char * format, ...)					throw();
+		static int		parse_bytes(string str, byte_array & values)	throw();
+		static int		timespec_diff(timespec from, timespec to)		throw();
+		static string	int_to_string(int)								throw();
+		static string	float_to_string(double, int)					throw();
+		static string	remove_newlines(string)							throw();
 };
 #endif
