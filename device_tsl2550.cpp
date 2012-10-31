@@ -73,6 +73,7 @@ bool DeviceTSL2550::probe() throw()
 	catch(minor_exception e)
 	{
 		Util::dlog("tsl2550 not found: %s\n", e.message.c_str());
+		return(false);
 	}
 
 	Util::dlog("probe: tsl2550 detected\n");
