@@ -45,18 +45,7 @@ double DeviceTMP275::read(Control *) throw(exception)
 
 	try
 	{
-		// put device in 12 bits / shutdown mode, take one ("one shot") measurement
-		bytes = command("w 01 e1 r 01");
-
-		if(bytes.size() != 1)
-			throw(minor_exception("invalid reply size from control"));
-
-		if(bytes[0] != 0x61)
-			throw(minor_exception("invalid reply from control"));
-
-		// conversion time takes 300 ms max
-		usleep(300000);
-
+		// read two bytes from temperature register
 		bytes = command("w 00 r 02");
 
 		if(bytes.size() != 2)
@@ -90,12 +79,19 @@ bool DeviceTMP275::probe() throw()
 		if((in[0] != 0xab) || (in[1] != 0xc0))
 			throw(minor_exception("incorrect reply from probe"));
 
-		in = command("w 01 e1 r 01");
+		// write to config register
+		// os (oneshot) = 0, r1/r0 (resolution) = 11 = 12 bits,
+		// f1/f0 (fault queue) = 00 (1) (n/a)
+		// pol (polarity of the ALERT pin) = 0 (low) (n/a)
+		// tm (thermostat mode) = 0 (comparator) (n/a)
+		// sd (shutdown) = no shutdown
+ 
+		in = command("w 01 60 r 01");
 
 		if(in.size() != 1)
 			throw(minor_exception("incorrect length in reply"));
 
-		if(in[0] != 0x61)
+		if(in[0] != 0x60)
 			throw(minor_exception("incorrect reply from probe"));
 
 	}
