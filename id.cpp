@@ -30,8 +30,8 @@ ID::ID(string id_str) throw()
 	control_type	= (id_int & 0x0000ff00) >>  8;
 	control_index	= (id_int & 0x000000ff) >>  0;
 
-	Util::dlog("** %s becomes %02x/%02x/%02x/%02x\n",
-			id_str.c_str(), interface, device, control_type, control_index);
+	//Util::dlog("** %s becomes %02x/%02x/%02x/%02x\n",
+			//id_str.c_str(), interface, device, control_type, control_index);
 }
 
 ID::operator uint32_t() const throw()
