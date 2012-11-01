@@ -74,7 +74,7 @@ double DeviceDigipicco::read(Control *control) throw(exception)
 	{
 		case(DeviceDigipicco::temperature):
 		{
-			temphum = (((double)rv[1] / 32767) * 165) - 40;
+			temphum = ((((double)rv[1] / 32767) * 165.0) - 40.0) + 1.2;
 			break;
 		}
 
@@ -137,7 +137,7 @@ void DeviceDigipicco::find_controls() throw()
 	try
 	{
 		control_temp = new Control(root, ID(id.interface, id.device, int(DeviceDigipicco::temperature), 1),
-					-40, 125, "˙C", 2, cc, DeviceDigipicco::temperature, 0,
+					-25, 85, "˙C", 2, cc, DeviceDigipicco::temperature, 0,
 					"temp", "Temperature sensor");
 
 		control_hum = new Control(root, ID(id.interface, id.device, int(DeviceDigipicco::humidity), 1), 
