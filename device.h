@@ -24,6 +24,7 @@ class Device
 
 				Device(Interfaces *root, ID id)					throw(exception);
 		virtual	~Device()										throw();
+
 		virtual void	find_controls()							throw(exception)	= 0;
 		virtual string	name_short()					const	throw()				= 0;
 		virtual	string	name_long()						const	throw()				= 0;
