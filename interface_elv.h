@@ -15,7 +15,7 @@ class InterfaceELV : public Interface
 		friend class Interfaces;
 
 				InterfaceELV(Interfaces *root, ID id, string device_node)	throw(exception);
-				~InterfaceELV()												throw();
+		virtual	~InterfaceELV()												throw();
 
 		static string name_short_static()	throw();
 		static string name_long_static()	throw();

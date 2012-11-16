@@ -17,8 +17,8 @@ class DeviceDigipicco : public DeviceI2C
 
 		friend class InterfaceELV;
 
-		DeviceDigipicco(Interfaces *root, ID, int address)	throw(exception);
-		~DeviceDigipicco()									throw();
+				DeviceDigipicco(Interfaces *root, ID, int address)	throw(exception);
+		virtual	~DeviceDigipicco()									throw();
 
 		string	name_short()						const	throw();
 		string	name_long()							const	throw();

@@ -18,7 +18,7 @@ class DeviceTMP275 : public DeviceI2C
 
 	public:
 				DeviceTMP275(Interfaces *, ID,  int address)	throw(exception);
-				~DeviceTMP275()									throw();
+		virtual	~DeviceTMP275()									throw();
 
 		string	name_short()							const	throw();
 		string	name_long()								const	throw();

@@ -23,6 +23,10 @@ Control::Control(Interfaces *root_in, ID id_in,
 {
 }
 
+Control::~Control() throw()
+{
+}
+
 string Control::min_string() const throw()
 {
 	return(Util::float_to_string(min, precision));

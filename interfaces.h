@@ -34,8 +34,8 @@ class Interfaces
 		typedef map<ID, Interface *>		interfaces_t;
 		typedef interfaces_t::iterator		iterator;
 
-		Interfaces()								throw(exception);
-		~Interfaces()								throw();
+					Interfaces()					throw(exception);
+		virtual		~Interfaces()					throw();
 
 		iterator	begin()							throw();
 		iterator	end()							throw();

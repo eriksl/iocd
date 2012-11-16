@@ -18,8 +18,8 @@ class DeviceAtmel : public DeviceI2C
 
 		friend class InterfaceELV;
 
-		DeviceAtmel(Interfaces *root, ID, int address)			throw(exception);
-		~DeviceAtmel()											throw();
+				DeviceAtmel(Interfaces *root, ID, int address)	throw(exception);
+		virtual	~DeviceAtmel()									throw();
 
 		string	name_short()							const	throw();
 		string	name_long()								const	throw();

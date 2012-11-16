@@ -14,8 +14,8 @@ class DeviceTSL2550 : public DeviceI2C
 
 		friend class InterfaceELV;
 
-		DeviceTSL2550(Interfaces *root, ID, int address)		throw(exception);
-		~DeviceTSL2550()										throw();
+				DeviceTSL2550(Interfaces *root, ID, int address)	throw(exception);
+		virtual	~DeviceTSL2550()									throw();
 
 		string	name_short()							const	throw();
 		string	name_long()								const	throw();

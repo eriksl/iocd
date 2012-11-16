@@ -16,6 +16,10 @@ class DeviceI2C : public Device
 	public:
 
 				DeviceI2C(Interfaces *root, ID, int address)							throw(exception);
+		virtual	~DeviceI2C()															throw();
+
+
+
 		virtual	Util::byte_array command(string cmd, int timeout = 200, int chunks = 1)	throw(exception);
 
 				string	device_id()												const	throw();

@@ -38,6 +38,7 @@ class Control
 						double min, double max, string unit, int precision,
 						const capset &caps, int type, int index,
 						string name, string description)		throw(exception);
+		virtual	~Control()										throw();
 
 		const	ID			id;
 		const	double		min;

@@ -17,8 +17,8 @@ class DeviceDS1731 : public DeviceI2C
 
 		friend class InterfaceELV;
 
-		DeviceDS1731(Interfaces *root, ID, int address)	throw(exception);
-		~DeviceDS1731()									throw();
+				DeviceDS1731(Interfaces *root, ID, int address)	throw(exception);
+		virtual	~DeviceDS1731()									throw();
 
 		string	name_short()					const	throw();
 		string	name_long()						const	throw();
