@@ -96,6 +96,13 @@ string Control::capabilities() const throw()
 		result += "hardpwm";
 	}
 
+	if(canpwmmode())
+	{
+		if(!result.empty())
+			result += "/";
+		result += "pwmmode";
+	}
+
 	return(result);
 }
 
@@ -132,6 +139,11 @@ bool Control::canhardpwm() const throw()
 bool Control::canpwm() const throw()
 {
 	return(caps.test(Control::cap_canhardpwm) || caps.test(Control::cap_cansoftpwm));
+}
+
+bool Control::canpwmmode() const throw()
+{
+	return(caps.test(Control::cap_canpwmmode));
 }
 
 double Control::read() throw(exception)

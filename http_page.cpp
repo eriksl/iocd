@@ -105,8 +105,8 @@ int HttpServer::page_dispatcher_root(MHD_Connection * connection, const string &
 					data += "<td>" + (control->second->canwrite()	? write_form(control->second->id)			: string("")) + "</td>";
 					data += "<td>" + (control->second->cancount()	? control->second->readcounter_string()		: string("")) + "</td>";
 					data += "<td>" + (control->second->cancount()	? reset_form(control->second->id)			: string("")) + "</td>";
-					data += "<td>" + (control->second->canpwm()		? control->second->readpwmmode_string()		: string("")) + "</td>";
-					data += "<td>" + (control->second->canpwm()		? write_pwmmode_form(control->second->id)	: string("")) + "</td>";
+					data += "<td>" + (control->second->canpwmmode()	? control->second->readpwmmode_string()		: string("")) + "</td>";
+					data += "<td>" + (control->second->canpwmmode()	? write_pwmmode_form(control->second->id)	: string("")) + "</td>";
 					data += "</tr>\n";
 				}
 			}

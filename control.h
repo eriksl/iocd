@@ -64,6 +64,7 @@ class Control
 		bool	canwrite()				const	throw();
 		bool	cancount()				const	throw();
 		bool	canpwm()				const	throw();
+		bool	canpwmmode()			const	throw();
 		bool	cansoftpwm()			const	throw();
 		bool	canhardpwm()			const	throw();
 

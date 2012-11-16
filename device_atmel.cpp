@@ -380,6 +380,7 @@ void DeviceAtmel::find_controls() throw()
 			cc.set(Control::cap_canread);
 			cc.set(Control::cap_canwrite);
 			cc.set(Control::cap_cansoftpwm);
+			cc.set(Control::cap_canpwmmode);
 
 			control = new Control(root,
 					ID(id.interface, id.device, DeviceAtmel::digital_output, ix + 1),
@@ -414,6 +415,7 @@ void DeviceAtmel::find_controls() throw()
 			cc.set(Control::cap_canread);
 			cc.set(Control::cap_canwrite);
 			cc.set(Control::cap_canhardpwm);
+			cc.set(Control::cap_canpwmmode);
 
 			control = new Control(root,
 					ID(id.interface, id.device, DeviceAtmel::pwm_output, ix + 1),
