@@ -86,7 +86,6 @@ class Control
 
 		Interfaces* const	root;
 
-		Device*				parent()												throw(exception);
-		Util::byte_array	command(string cmd, int timeout = 200, int chunks = 1)	throw(exception); 
+		Device*				parent()			throw(exception);
 };
 #endif

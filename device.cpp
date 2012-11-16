@@ -14,15 +14,9 @@ Device::~Device() throw()
 {
 }
 
-Util::byte_array Device::command(string cmd, int timeout, int chunks) throw(exception)
+void Device::command(void *cmd) throw(exception)
 {
-	string				out;
-	Util::byte_array	bytes;
-
-	out = parent()->command(cmd, timeout, chunks);
-	Util::parse_bytes(out, bytes);
-
-	return(bytes);
+	parent()->command(cmd);
 }
 
 double Device::read(Control *) throw(exception)

@@ -22,14 +22,14 @@ Interface::~Interface() throw()
 	pthread_mutex_destroy(&mutex);
 }
 
-string Interface::command(string cmd, int timeout, int chunks) throw(exception)
+void Interface::command(void *cmd) throw(exception)
 {
 	string result;
 
 	try
 	{
 		lock();
-		result = interface_command(cmd, timeout, chunks);
+		interface_command(cmd);
 		unlock();
 	}
 	catch(...)
@@ -44,8 +44,6 @@ string Interface::command(string cmd, int timeout, int chunks) throw(exception)
 
 		throw;
 	}
-
-	return(result);
 }
 
 Devices* Interface::interface_devices() throw()

@@ -38,15 +38,15 @@ class Interface
 		int 				fd;
 		int 				enumerator;
 
-		string			command(string cmd, int timeout = 200, int chunks = 1)		throw(exception);
+		void				command(void *)				throw(exception);
 
 	private:
 
 				pthread_mutex_t	mutex;
 
-		virtual void	find_devices()													throw(exception) = 0;
-		virtual	string	interface_command(const string &cmd, int timeout, int chunks)	throw(exception) = 0;
-				void	lock()															throw(exception);
-				void	unlock()														throw(exception);
+		virtual void	find_devices()					throw(exception) = 0;
+		virtual	void	interface_command(void *)		throw(exception) = 0;
+				void	lock()							throw(exception);
+				void	unlock()						throw(exception);
 };
 #endif

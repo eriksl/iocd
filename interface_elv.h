@@ -26,12 +26,20 @@ class InterfaceELV : public Interface
 
 	private:
 
+		struct cmd_t
+		{
+			string	in;
+			string	out;
+			int		timeout;
+			int		chunks;
+		};
+
 		string	device_node;
 
-		void	open(string path)												throw(exception);
-		string	interface_command(const string &cmd, int timeout, int chunks)	throw(exception);
-		void	find_devices()													throw();
-		template<class DeviceT> void probe_device(int address)					throw();
+		void	open(string path)								throw(exception);
+		void	interface_command(void *)						throw(exception);
+		void	find_devices()									throw();
+		template<class DeviceT> void probe_device(int address)	throw();
 };
 
 #endif

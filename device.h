@@ -33,9 +33,9 @@ class Device
 
 	protected:
 
-		virtual Util::byte_array	command(string cmd, int timeout, int chunks)	throw(exception);
-		Controls 					controls;
-		Interfaces* const			root;
+				Controls 			controls;
+				Interfaces* const	root;
+		virtual void				command(void *cmd)			throw(exception);
 
 	private:
 

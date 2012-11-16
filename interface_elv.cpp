@@ -124,7 +124,13 @@ void InterfaceELV::open(string open_device) throw(exception)
 
 	try
 	{
-		rv = command("z 4b", 5000, 2);
+		cmd_t cmd;
+
+		cmd.in		= "z 4b";
+		cmd.timeout = 5000;
+		cmd.chunks	= 2;
+		command(&cmd);
+		rv			= cmd.out;
 	}
 	catch(minor_exception e)
 	{
@@ -147,21 +153,21 @@ void InterfaceELV::open(string open_device) throw(exception)
 	}
 }
 
-string InterfaceELV::interface_command(const string &cmd_in, int timeout, int chunks) throw(exception)
+void InterfaceELV::interface_command(void *cmdptr) throw(exception)
 {
+	cmd_t			*cmd_elv = static_cast<cmd_t *>(cmdptr);
 	static char		buffer[256];
 	string			cmd;
 	struct pollfd	pfd;
 	ssize_t			len;
 	int				pr;
-	string			rv;
 	struct timespec	start, now;
 	int				timeout_left;
 
 	if(clock_gettime(CLOCK_MONOTONIC, &start))
 		throw(minor_exception("InterfaceELV::interface_command: clock_gettime error\n"));
 
-	cmd = string(":") + cmd_in + string("\n");
+	cmd = string(":") + cmd_elv->in + string("\n");
 
 	Util::dlog(">> %s\n", Util::remove_newlines(cmd).c_str());
 
@@ -172,7 +178,7 @@ string InterfaceELV::interface_command(const string &cmd_in, int timeout, int ch
 
 		timeout_left = Util::timespec_diff(start, now);
 
-		if((timeout > 0) && (timeout_left < 0))
+		if((cmd_elv->timeout > 0) && (timeout_left < 0))
 			throw(minor_exception("InterfaceELV::interface_command: fatal timeout (1)"));
 
 		pfd.fd		= fd;
@@ -200,7 +206,7 @@ string InterfaceELV::interface_command(const string &cmd_in, int timeout, int ch
 	if(clock_gettime(CLOCK_MONOTONIC, &now))
 		throw(minor_exception("InterfaceELV::interface_command: clock_gettime error\n"));
 
-	timeout_left = timeout > 0 ? timeout - Util::timespec_diff(start, now) : -1;
+	timeout_left = cmd_elv->timeout > 0 ? cmd_elv->timeout - Util::timespec_diff(start, now) : -1;
 
 	pfd.fd		= fd;
 	pfd.events	= POLLOUT | POLLERR;
@@ -219,14 +225,14 @@ string InterfaceELV::interface_command(const string &cmd_in, int timeout, int ch
 	if(::write(fd, cmd.c_str(), cmd.length()) != (ssize_t)cmd.length())
 		throw(major_exception("InterfaceELV::interface_command: write error"));
 
-	while(chunks > 0)
+	while(cmd_elv->chunks > 0)
 	{
 		if(clock_gettime(CLOCK_MONOTONIC, &now))
 			throw(minor_exception("InterfaceELV::interface_command: clock_gettime error\n"));
 
-		timeout_left = timeout > 0 ? timeout - Util::timespec_diff(start, now) : -1;
+		timeout_left = cmd_elv->timeout > 0 ? cmd_elv->timeout - Util::timespec_diff(start, now) : -1;
 
-		if((timeout > 0) && (timeout_left < 0))
+		if((cmd_elv->timeout > 0) && (timeout_left < 0))
 			break;
 
 		pfd.fd		= fd;
@@ -250,14 +256,12 @@ string InterfaceELV::interface_command(const string &cmd_in, int timeout, int ch
 			len = ::read(fd, buffer, sizeof(buffer) - 1);
 			buffer[len] = 0;
 			//Util::dlog("received %d bytes: %s\n", len, buffer);
-			rv += buffer;
-			chunks--;
+			cmd_elv->out += buffer;
+			cmd_elv->chunks--;
 		}
 	}
 
-	Util::dlog("<< %s\n", Util::remove_newlines(rv).c_str());
-
-	return(rv);
+	Util::dlog("<< %s\n", Util::remove_newlines(cmd_elv->out).c_str());
 }
 
 void InterfaceELV::find_devices() throw()

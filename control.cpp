@@ -206,11 +206,6 @@ string Control::readpwmmode_string() throw(exception)
 	return(Util::int_to_string(readpwmmode()));
 }
 
-Util::byte_array Control::command(string cmd, int timeout, int chunks) throw(exception)
-{
-	return(parent()->command(cmd, timeout, chunks));
-}
-
 Device* Control::parent() throw(exception)
 {
 	return(root->find_device(id));
