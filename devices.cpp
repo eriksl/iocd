@@ -8,12 +8,9 @@ Devices::Devices() throw(exception)
 
 Devices::~Devices() throw()
 {
-	iterator it;
-
-	for(it = devices.begin(); it != devices.end(); it++)
-		delete it->second;
-
-	devices.clear();
+	Util::dlog("++ devices destructor start\n");
+	clear();
+	Util::dlog("++ devices destructor end\n");
 }
 
 Devices::iterator Devices::begin() throw()
@@ -24,6 +21,16 @@ Devices::iterator Devices::begin() throw()
 Devices::iterator Devices::end() throw()
 {
 	return(devices.end());
+}
+
+void Devices::clear() throw()
+{
+	iterator it;
+
+	for(it = devices.begin(); it != devices.end(); it++)
+		delete it->second;
+
+	devices.clear();
 }
 
 void Devices::add(Device *device) throw()

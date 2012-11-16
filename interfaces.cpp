@@ -29,12 +29,9 @@ Interfaces::~Interfaces() throw()
 	::signal(SIGINT, SIG_DFL);
 	::signal(SIGQUIT, SIG_DFL);
 
-	iterator it;
-
-	for(it = interfaces.begin(); it != interfaces.end(); it++)
-		delete it->second;
-
-	interfaces.clear();
+	Util::dlog("** interfaces destructor start deleting interfaces\n");
+	clear();
+	Util::dlog("** interfaces destructor cleared interfaces\n");
 
 	pthread_mutex_destroy(&signal_mutex);
 	pthread_cond_destroy(&signal_condition);
@@ -53,6 +50,16 @@ Interfaces::iterator Interfaces::end() throw()
 size_t Interfaces::count() throw()
 {
 	return(interfaces.size());
+}
+
+void Interfaces::clear() throw()
+{
+	iterator it;
+
+	for(it = interfaces.begin(); it != interfaces.end(); it++)
+		delete it->second;
+
+	interfaces.clear();
 }
 
 Interface* Interfaces::find_interface(ID id) throw(exception)

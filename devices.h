@@ -24,6 +24,7 @@ class Devices
 
 		iterator	begin()							throw();
 		iterator	end()							throw();
+		void		clear()							throw();
 		Device*		find_device(ID id)				throw(exception);
 
 	private:
