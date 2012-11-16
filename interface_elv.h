@@ -13,6 +13,7 @@ class InterfaceELV : public Interface
 	public:
 
 		friend class Interfaces;
+		friend class DeviceI2C;
 
 				InterfaceELV(Interfaces *root, ID id, string device_node)	throw(exception);
 		virtual	~InterfaceELV()												throw();
