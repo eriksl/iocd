@@ -59,8 +59,10 @@ class Interfaces
 		pthread_mutex_t		signal_mutex;
 		pthread_cond_t		signal_condition;
 
-									void	probe_interfaces(void)			throw();
-		template<class InterfaceT>	void	probe_interface(string device)	throw();
+									void	probe_interfaces(void)				throw();
+		template<class InterfaceT>	void	probe_interface(string device)		throw();
+		template<class InterfaceT>	void	probe_interface_0()					throw();
+		template<class InterfaceT>	void	probe_interface_1(string device)	throw();
 
 		static	void		sigint(int);
 		static	void		sigquit(int);

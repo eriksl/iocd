@@ -113,10 +113,42 @@ void Interfaces::probe_interfaces() throw()
 	int	ix;
 
 	for(ix = 0; ix < 2; ix++)
-		probe_interface<InterfaceELV>(string("/dev/ttyUSB") + Util::int_to_string(ix));
+		probe_interface_1<InterfaceELV>(string("/dev/ttyUSB") + Util::int_to_string(ix));
+
+	probe_interface_0<InterfaceUSBraw>();
 }
 
-template<class InterfaceT> void Interfaces::probe_interface(string device_node) throw()
+template<class InterfaceT> void Interfaces::probe_interface_0() throw()
+{
+	InterfaceT *interface = 0;
+	ID			id(enumerator++);
+	string		error;
+
+	try
+	{
+		Util::dlog("** probing for %s\n", InterfaceT::name_short_static().c_str());
+		interface = new InterfaceT(this, id); 
+	}
+	catch(minor_exception e)
+	{
+		error = e.message;
+	}
+	catch(...)
+	{
+		error = "<unspecified error>";
+	}
+
+	if(interface)
+	{
+		Util::dlog("** probe for %s successful\n", interface->interface_id().c_str());
+		interfaces[id] = interface;
+		interface->find_devices();
+	}
+	else
+		Util::dlog("** probe %s unsuccessful\n", InterfaceT::name_short_static().c_str());
+}
+
+template<class InterfaceT> void Interfaces::probe_interface_1(string device_node) throw()
 {
 	InterfaceT *interface = 0;
 	ID			id(enumerator++);
