@@ -477,7 +477,7 @@ int HttpServer::page_dispatcher_quit(MHD_Connection *connection, const string &,
 {
 	_interfaces->signal(Interfaces::signal_user_quit);
 
-	return(send_html(connection, "restart", MHD_HTTP_OK, "<p>quit</p>", -1));
+	return(send_html(connection, "quit", MHD_HTTP_OK, "<p>quit</p>", -1));
 }
 
 int HttpServer::page_dispatcher_stylecss(MHD_Connection * connection, const string & method, ConnectionData * con_cls, const KeyValues &) const throw(exception)
