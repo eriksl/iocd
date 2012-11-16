@@ -20,6 +20,7 @@ class Controls
 		friend class DeviceDS1731;
 		friend class DeviceTMP275;
 		friend class DeviceTSL2550;
+		friend class DeviceK8055;
 
 		typedef map<ID, Control *>		controls_t;
 		typedef controls_t::iterator	iterator;

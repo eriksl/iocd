@@ -14,6 +14,7 @@ class Devices
 	public:
 
 		friend class InterfaceELV;
+		friend class InterfaceUSBraw;
 
 		typedef map<ID, Device *>	devices_t;
 		typedef devices_t::iterator	iterator;

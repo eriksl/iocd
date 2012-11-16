@@ -2,6 +2,7 @@
 #include "control.h"
 #include "interfaces.h"
 #include "interface_elv.h"
+#include "interface_usbraw.h"
 #include "device.h"
 #include "cppstreams.h"
 #include "util.h"

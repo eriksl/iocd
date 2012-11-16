@@ -25,7 +25,8 @@ class Control
 			cap_canwrite,
 			cap_cancount,
 			cap_cansoftpwm,
-			cap_canhardpwm
+			cap_canhardpwm,
+			cap_canpwmmode,
 		};
 
 		typedef bitset<8> capset;
