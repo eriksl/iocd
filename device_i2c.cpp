@@ -9,6 +9,10 @@ DeviceI2C::DeviceI2C(Interfaces *root_in, ID id_in, int address_in) throw(except
 {
 }
 
+DeviceI2C::~DeviceI2C() throw()
+{
+}
+
 Util::byte_array DeviceI2C::command(string cmd, int timeout, int chunks) throw(exception)
 {
 	InterfaceELV::cmd_t	cmd_elv;
