@@ -26,6 +26,8 @@ Interfaces::Interfaces() throw(exception)
 
 Interfaces::~Interfaces() throw()
 {
+	Util::dlog("** interfaces destructor start\n");
+
 	::signal(SIGINT, SIG_DFL);
 	::signal(SIGQUIT, SIG_DFL);
 
@@ -35,6 +37,8 @@ Interfaces::~Interfaces() throw()
 
 	pthread_mutex_destroy(&signal_mutex);
 	pthread_cond_destroy(&signal_condition);
+
+	Util::dlog("** interfaces destructor end\n");
 }
 
 Interfaces::iterator Interfaces::begin() throw()
@@ -156,7 +160,7 @@ template<class InterfaceT> void Interfaces::probe_interface_1(string device_node
 
 	try
 	{
-		Util::dlog("II probing for %s:%s\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
+		Util::dlog("** probing for %s:%s\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
 		interface = new InterfaceT(this, id, device_node); 
 	}
 	catch(minor_exception e)
@@ -170,12 +174,12 @@ template<class InterfaceT> void Interfaces::probe_interface_1(string device_node
 
 	if(interface)
 	{
-		Util::dlog("II probe for %s successful\n", interface->interface_id().c_str());
+		Util::dlog("** probe for %s successful\n", interface->interface_id().c_str());
 		interfaces[id] = interface;
 		interface->find_devices();
 	}
 	else
-		Util::dlog("II probe %s at %s unsuccessful\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
+		Util::dlog("** probe %s at %s unsuccessful\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
 }
 
 void Interfaces::sigint(int)
