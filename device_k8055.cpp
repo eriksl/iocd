@@ -16,6 +16,9 @@ DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, libusb_device *dev_in) t
 
 	if((rv = send_command(sizeof(packet), packet)) != sizeof(packet))
 		throw(minor_exception("DD k8055: error resetting device"));
+
+	analog_outputs[0] = analog_outputs[1] = 0;
+	digital_outputs = 0;
 }
 
 DeviceK8055::~DeviceK8055() throw()
