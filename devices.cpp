@@ -8,9 +8,7 @@ Devices::Devices() throw(exception)
 
 Devices::~Devices() throw()
 {
-	Util::dlog("++ devices destructor start\n");
 	clear();
-	Util::dlog("++ devices destructor end\n");
 }
 
 Devices::iterator Devices::begin() throw()

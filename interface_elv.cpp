@@ -238,8 +238,6 @@ void InterfaceELV::interface_command(void *cmdptr) throw(exception)
 		pfd.fd		= fd;
 		pfd.events	= POLLIN | POLLERR;
 
-		//Util::dlog("read poll, timeout = %d\n", timeout_left);
-
 		pr = poll(&pfd, 1, timeout_left);
 
 		if(pr < 0)
@@ -255,7 +253,6 @@ void InterfaceELV::interface_command(void *cmdptr) throw(exception)
 		{
 			len = ::read(fd, buffer, sizeof(buffer) - 1);
 			buffer[len] = 0;
-			//Util::dlog("received %d bytes: %s\n", len, buffer);
 			cmd_elv->out += buffer;
 			cmd_elv->chunks--;
 		}
@@ -297,9 +294,7 @@ template<class DeviceT> void InterfaceELV::probe_device(int address) throw()
 	{
 		Util::dlog("DD probe for %s successful\n", device->device_id().c_str());
 		devices.add(device);
-		Util::dlog("DD finding controls for %s\n", device->device_id().c_str());
 		device->find_controls();
-		Util::dlog("DD finding controls for %s successful\n", device->device_id().c_str());
 	}
 	else
 		Util::dlog("DD probe for %s at 0x%02x unsuccessful: %s\n", DeviceT::name_short_static().c_str(), address, error.c_str());

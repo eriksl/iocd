@@ -42,7 +42,6 @@ DeviceUSBraw::DeviceUSBraw(Interfaces *root_in, ID id_in,
 
 DeviceUSBraw::~DeviceUSBraw() throw()
 {
-	Util::dlog("DD destructor deviceusbraw start\n");
 	ssize_t rv;
 
 	if(handle)
@@ -61,8 +60,6 @@ DeviceUSBraw::~DeviceUSBraw() throw()
 	}
 
 	libusb_unref_device(device);
-
-	Util::dlog("DD destructor deviceusbraw end\n");
 }
 
 string DeviceUSBraw::device_id() const throw()

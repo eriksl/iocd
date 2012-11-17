@@ -16,14 +16,10 @@ Interface::Interface(Interfaces *root_in, ID id_in) throw(exception)
 
 Interface::~Interface() throw()
 {
-	Util::dlog("II interface destructor start\n");
-
 	if(fd >= 0)
 		::close(fd);
 
 	pthread_mutex_destroy(&mutex);
-
-	Util::dlog("II interface destructor end\n");
 }
 
 void Interface::command(void *cmd) throw(exception)

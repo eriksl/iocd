@@ -12,7 +12,6 @@ Device::Device(Interfaces *root_in, ID id_in) throw(exception)
 
 Device::~Device() throw()
 {
-	Util::dlog("DD device destructor\n");
 }
 
 void Device::command(void *cmd) throw(exception)

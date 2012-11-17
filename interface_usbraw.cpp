@@ -16,25 +16,15 @@ InterfaceUSBraw::InterfaceUSBraw(Interfaces *root_in, ID id_in) throw(exception)
 
 	if((rv = libusb_get_device_list(0, &device_list)) < 0)
 		throw(minor_exception(string("II usbraw: ") + libusb_error_name(rv)));
-
-	Util::dlog("II usbraw: %d usb devices found\n", (int)rv);
 }
 
 InterfaceUSBraw::~InterfaceUSBraw() throw()
 {
-	Util::dlog("II interface_usbraw destructor start\n");
-
-	Util::dlog("II interface_usbraw explicitly requesting clear devices\n");
-
 	devices.clear();
-
-	Util::dlog("II interface_usbraw explicitly requesting clear devices done\n");
 
 	if(device_list)
 		libusb_free_device_list(device_list, 1);
 	libusb_exit(0);
-
-	Util::dlog("II interface_usbraw destructor done\n");
 }
 
 string InterfaceUSBraw::name_short_static() throw()
@@ -122,9 +112,7 @@ template<class DeviceT> void InterfaceUSBraw::probe_device(int vendor, int produ
     {
         Util::dlog("II usbraw: probe for %s successful\n", device->device_id().c_str());
         devices.add(device);
-        Util::dlog("II usbraw: finding controls for %s\n", device->device_id().c_str());
         device->find_controls();
-        Util::dlog("II usbraw: finding controls for %s successful\n", device->device_id().c_str());
     }
     else
         Util::dlog("II usbraw: probe for %s@%04x:%04x unsuccessful: %s\n", DeviceT::name_short_static().c_str(), product, vendor, error.c_str());

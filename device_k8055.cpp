@@ -67,7 +67,7 @@ void DeviceK8055::find_controls() throw(exception)
 		}
 		catch(minor_exception e)
 		{
-			Util::dlog("DD k8055 find_controls: %s\n", e.message.c_str());
+			Util::vlog("DD k8055 find_controls: %s\n", e.message.c_str());
 		}
 
 		if(control)
@@ -90,7 +90,7 @@ void DeviceK8055::find_controls() throw(exception)
 		}
 		catch(minor_exception e)
 		{
-			Util::dlog("DD k8055 find_controls: %s\n", e.message.c_str());
+			Util::vlog("DD k8055 find_controls: %s\n", e.message.c_str());
 		}
 
 		if(control)
@@ -112,7 +112,7 @@ void DeviceK8055::find_controls() throw(exception)
 		}
 		catch(minor_exception e)
 		{
-			Util::dlog("DD k8055 find_controls: %s\n", e.message.c_str());
+			Util::vlog("DD k8055 find_controls: %s\n", e.message.c_str());
 		}
 
 		if(control)
@@ -136,7 +136,7 @@ void DeviceK8055::find_controls() throw(exception)
 		}
 		catch(minor_exception e)
 		{
-			Util::dlog("DD k8055 find_controls: %s\n", e.message.c_str());
+			Util::vlog("DD k8055 find_controls: %s\n", e.message.c_str());
 		}
 
 		if(control)
@@ -160,7 +160,7 @@ void DeviceK8055::find_controls() throw(exception)
 		}
 		catch(minor_exception e)
 		{
-			Util::dlog("DD k8055 find_controls: %s\n", e.message.c_str());
+			Util::vlog("DD k8055 find_controls: %s\n", e.message.c_str());
 		}
 
 		if(control)
@@ -219,8 +219,6 @@ double DeviceK8055::read(Control *control) throw(exception)
 	{
 		case(DeviceK8055::control_input_counter):
 		{
-			Util::dlog("DD k8055: read counter %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 1)
 				throw(minor_exception("DD k8055: counter index out of range"));
 
@@ -230,8 +228,6 @@ double DeviceK8055::read(Control *control) throw(exception)
 
 		case(DeviceK8055::control_input_digital):
 		{
-			Util::dlog("DD k8055: read digital input %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 2)
 				throw(minor_exception("DD k8055: digital input index out of range"));
 
@@ -241,8 +237,6 @@ double DeviceK8055::read(Control *control) throw(exception)
 
 		case(DeviceK8055::control_input_analog):
 		{
-			Util::dlog("DD k8055: read analog input %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 2)
 				throw(minor_exception("DD k8055: analog input index out of range"));
 
@@ -252,8 +246,6 @@ double DeviceK8055::read(Control *control) throw(exception)
 
 		case(DeviceK8055::control_output_digital):
 		{
-			Util::dlog("DD k8055: read digital output %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 7)
 				throw(minor_exception("DD k8055: digital output index out of range"));
 
@@ -262,8 +254,6 @@ double DeviceK8055::read(Control *control) throw(exception)
 
 		case(DeviceK8055::control_output_analog):
 		{
-			Util::dlog("DD k8055: read analog output %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 1)
 				throw(minor_exception("DD k8055: analog output index out of range"));
 
@@ -287,8 +277,6 @@ void DeviceK8055::write(Control *control, double value) throw(exception)
 	{
 		case(DeviceK8055::control_output_digital):
 		{
-			Util::dlog("DD k8055: write digital output %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 7)
 				throw(minor_exception("DD k8055: write digital output index out of range"));
 
@@ -299,8 +287,6 @@ void DeviceK8055::write(Control *control, double value) throw(exception)
 
 		case(DeviceK8055::control_output_analog):
 		{
-			Util::dlog("DD k8055: write analog output %d\n", ordinal);
-
 			if(ordinal < 0 || ordinal > 1)
 				throw(minor_exception("DD k8055: write analog output index out of range"));
 

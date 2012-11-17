@@ -45,10 +45,7 @@ double DeviceTSL2550::read(Control *) throw(exception)
 	lux = read_retry(3, true);
 
 	if(lux < 10)
-	{
-		Util::dlog("read tsl2550: reread using standard range, lux = %f\n", lux);
 		lux = read_retry(3, false);
-	}
 
 	return(lux);
 }
@@ -100,10 +97,7 @@ void DeviceTSL2550::find_controls() throw()
 	}
 
 	if(control)
-	{
-		Util::dlog("probe: tsl2550 control detected\n");
 		controls.add(control);
-	}
 }
 
 double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
@@ -231,10 +225,7 @@ bool DeviceTSL2550::adc2count(int in, int &out, bool &overflow) throw()
     int     step    = (in & 0x0f);
 
     if(!valid)
-    {
-        //dlog("tsl2550::adc2count: invalid value\n");
         return(false);
-    }
 
     if((in & 0x7f) == 0x7f)
         overflow = true;
@@ -243,9 +234,6 @@ bool DeviceTSL2550::adc2count(int in, int &out, bool &overflow) throw()
     int stepval     = step * (1 << chord);
 
     out = chordval + stepval;
-
-    //dlog("tsl2550::adc2count: valid = %d, chord = %d, step = %d, chordval = %d, stepval = %d, count = %d, overflow = %d\n",
-            //valid, chord, step, chordval, stepval, out, (int)overflow);
 
     return(true);
 }
@@ -261,9 +249,6 @@ double DeviceTSL2550::count2lux(int ch0, int ch1, int multiplier) throw()
 
     e = exp(-0.181 * r * r);
     l = ((double)ch0 - (double)ch1) * 0.39 * e * (double)multiplier;
-
-	Util::dlog("tsl2550::_count2lux: ch0=%d, ch1=%d, multiplier=%d\n", ch0, ch1, multiplier);
-	Util::dlog("tsl2550::_count2lux: r=%f, e=%f, l=%f\n", r, e, l);
 
     if(l > 100)
         l = round(l);

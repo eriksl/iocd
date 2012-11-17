@@ -26,19 +26,13 @@ Interfaces::Interfaces() throw(exception)
 
 Interfaces::~Interfaces() throw()
 {
-	Util::dlog("** interfaces destructor start\n");
-
 	::signal(SIGINT, SIG_DFL);
 	::signal(SIGQUIT, SIG_DFL);
 
-	Util::dlog("** interfaces destructor start deleting interfaces\n");
 	clear();
-	Util::dlog("** interfaces destructor cleared interfaces\n");
 
 	pthread_mutex_destroy(&signal_mutex);
 	pthread_cond_destroy(&signal_condition);
-
-	Util::dlog("** interfaces destructor end\n");
 }
 
 Interfaces::iterator Interfaces::begin() throw()

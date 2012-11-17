@@ -43,14 +43,12 @@ double DeviceAtmel::read(Control *control) throw(exception)
 	{
 		case(DeviceAtmel::digital_input):
 		{
-			Util::dlog("query digital input\n");
 			bytes = query(0x30, control->index, 4);
 			return(double(bytes[2]));
 		}
 
 		case(DeviceAtmel::analog_input):
 		{
-			Util::dlog("query analog input\n");
 			bytes = query(0xc0, control->index, 3);
 			bytes = query(0x01, 0, 5);
 			return(double((bytes[2] << 8) | (bytes[3])));
@@ -58,14 +56,12 @@ double DeviceAtmel::read(Control *control) throw(exception)
 
 		case(DeviceAtmel::digital_output):
 		{
-			Util::dlog("query digital output\n");
 			bytes = query(0x50, control->index, 4);
 			return(double(bytes[2]));
 		}
 
 		case(DeviceAtmel::pwm_output):
 		{
-			Util::dlog("query pwm output\n");
 			bytes = query(0x90, control->index, 5);
 			return(double((bytes[2] << 8) | (bytes[3])));
 		}
@@ -90,14 +86,12 @@ void DeviceAtmel::write(Control *control, double value_in) throw(exception)
 	{
 		case(DeviceAtmel::digital_output):
 		{
-			Util::dlog("query write digital output\n");
 			query(0x40, control->index, 4, value & 0xff);
 			break;
 		}
 
 		case(DeviceAtmel::pwm_output):
 		{
-			Util::dlog("query write pwm output\n");
 			query(0x80, control->index, 3, (value & 0xff00) >> 8, value & 0x00ff);
 			break;
 		}
@@ -124,7 +118,6 @@ int DeviceAtmel::readcounter(Control *control) throw(exception)
 	{
 		case(DeviceAtmel::digital_input):
 		{
-			Util::dlog("query: readcounter\n");
 			bytes = query(0x10, control->index, 7);
 			return( ((bytes[2] & 0xff000000) >> 24) |
 					((bytes[3] & 0x00ff0000) >> 16) |
@@ -494,9 +487,6 @@ Util::byte_array DeviceAtmel::query(int cmd, int index, int length, int param1, 
 		Util::dlog("minor exception: %s\n", e.message.c_str());
 		throw(minor_exception(string("query: ") + e.message));
 	}
-
-	Util::dlog("length required: %d\n", length);
-	Util::dlog("length actual: %d\n", bytes.size());
 
 	if(bytes.size() != (size_t)length)
 		throw(minor_exception("query: invalid result length"));
