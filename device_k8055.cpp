@@ -273,6 +273,9 @@ void DeviceK8055::write(Control *control, double value) throw(exception)
 {
 	int	ordinal = control->index;
 
+	if(value < control->min || value > control->max)
+		throw(minor_exception("DD k8055:: write digital: value out of range"));
+
 	switch(control->type)
 	{
 		case(DeviceK8055::control_output_digital):
