@@ -64,7 +64,7 @@ void InterfaceUSBraw::interface_command(void *cmdptr) throw(exception)
 
 void InterfaceUSBraw::find_devices() throw()
 {
-	//probe_device<DeviceK8055>(0);
+	probe_device<DeviceK8055>(0x10cf, 0x5500);
 	probe_device<DeviceK8055>(0x10cf, 0x5502);
 }
 
