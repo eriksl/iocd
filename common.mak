@@ -31,16 +31,7 @@ ifeq ($(TARGET), mipsel)
 	LDFLAGS		+= -L/home/erik/src/openpli/build-vuultimo/tmp/sysroots/vuultimo/lib
 endif
 
-ifeq ($(TARGET), ppc)
-	EXECPREFIX	= /home/erik/src/tuxbox/root/cdk/bin/powerpc-tuxbox-linux-gnu-
-	CPPFLAGS	+= -I/home/erik/src/tuxbox/root/cdkroot/include
-	CPPFLAGS	+= -DTARGET=ppc
-endif
-
-CC	= $(EXECPREFIX)gcc
-CPP	= $(EXECPREFIX)g++
-
-.PHONY:		all depend clean pristine install rpm dpkg
+.PHONY:			all depend clean pristine install rpm dpkg
 
 DATE			=	`date '+%Y%m%d%H%M'`
 VERSION			=	daily-$(DATE)
