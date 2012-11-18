@@ -178,15 +178,15 @@ void DeviceK8055::update_inputs(void) throw(exception)
 
 	digital_inputs =
 	(
-		((packet[DIGITAL_INP_OFFSET] >> 4) & 0x03) |	/* Input 1 and 2 */
-		((packet[DIGITAL_INP_OFFSET] << 2) & 0x04) |	/* Input 3 */
-		((packet[DIGITAL_INP_OFFSET] >> 3) & 0x18)		/* Input 4 and 5 */
+		((packet[offset_digital_input] >> 4) & 0x03) |	/* Input 1 and 2 */
+		((packet[offset_digital_input] << 2) & 0x04) |	/* Input 3 */
+		((packet[offset_digital_input] >> 3) & 0x18)		/* Input 4 and 5 */
 	);
 
-	analog_inputs[0]	= packet[ANALOG_1_OFFSET];
-	analog_inputs[1]	= packet[ANALOG_2_OFFSET];
-	counters[0]			= (packet[COUNTER_1_OFFSET + 1] << 8) | (packet[COUNTER_1_OFFSET + 0]);
-	counters[1]			= (packet[COUNTER_2_OFFSET + 1] << 8) | (packet[COUNTER_2_OFFSET + 0]);
+	analog_inputs[0]	= packet[offset_analog_input_1];
+	analog_inputs[1]	= packet[offset_analog_input_2];
+	counters[0]			= (packet[offset_counter_1 + 1] << 8) | (packet[offset_counter_1 + 0]);
+	counters[1]			= (packet[offset_counter_2 + 1] << 8) | (packet[offset_counter_2 + 0]);
 }
 
 void DeviceK8055::update_outputs(void) throw(exception)

@@ -42,22 +42,22 @@ class DeviceK8055 : public DeviceUSBraw
 
 		typedef enum
 		{
-			DIGITAL_INP_OFFSET		= 0,
-			DIGITAL_OUT_OFFSET		= 1,
-			ANALOG_1_OFFSET			= 2,
-			ANALOG_2_OFFSET			= 3,
-			COUNTER_1_OFFSET		= 4,
-			COUNTER_2_OFFSET		= 6,
+			offset_digital_input	= 0,
+			offset_digital_output	= 1,
+			offset_analog_input_1	= 2,
+			offset_analog_input_2	= 3,
+			offset_counter_1		= 4,
+			offset_counter_2		= 6,
 		} k8055_packet_offset;
 
 		typedef enum
 		{
-			reset					= 0x00,
-			CMD_SET_DEBOUNCE_1		= 0x01,
-			CMD_SET_DEBOUNCE_2		= 0x01,
-			reset_counter_1			= 0x03,
-			reset_counter_2			= 0x04,
-			set_analog_digital		= 0x05,
+			reset				= 0x00,
+			set_debounce_1		= 0x01,
+			set_debounce_2		= 0x01,
+			reset_counter_1		= 0x03,
+			reset_counter_2		= 0x04,
+			set_analog_digital	= 0x05,
 		} k8055_command;
 
 		typedef bitset<8>	bitset8;
