@@ -7,19 +7,22 @@ DEVICE_OBJS		= devices.o device.o device_atmel.o device_tmp275.o device_digipicc
 CONTROL_OBJS	= controls.o control.o
 HTTP_OBJS		= http_server.o http_page.o
 OBJS			= $(GENERIC_OBJS) $(INTERFACE_OBJS) $(DEVICE_OBJS) $(CONTROL_OBJS) $(HTTP_OBJS)
-CPPFLAGS		= `pkg-config --cflags libusb-1.0`
-LDFLAGS			= `pkg-config --libs libusb-1.0`
+DESTDIR			= /usr/local
 
 ifeq ($(TARGET), x86_64)
-	LDLIBS += -Wl,-Bstatic -lmicrohttpd -Wl,-Bdynamic -lboost_regex -lrt -lpthread
+	CPPFLAGS	= `pkg-config --cflags libusb-1.0`
+	LDFLAGS		= `pkg-config --libs libusb-1.0`
+	LDLIBS		+= -Wl,-Bstatic -lmicrohttpd -Wl,-Bdynamic -lrt -lpthread
 endif
 
 ifeq ($(TARGET), i386)
-	LDLIBS += -Wl,-Bstatic -lmicrohttpd -lboost_regex -lrt -Wl,-Bdynamic -lpthread
+	CPPFLAGS	= `pkg-config --cflags libusb-1.0`
+	LDFLAGS		= `pkg-config --libs libusb-1.0`
+	LDLIBS += -Wl,-Bstatic -lmicrohttpd -lrt -Wl,-Bdynamic -lpthread
 endif
 
 ifeq ($(TARGET), mipsel)
-	LDLIBS += -Wl,-Bstatic -lmicrohttpd -lboost_regex -lrt -Wl,-Bdynamic -lpthread
+	LDLIBS 		+= -Wl,-Bstatic -lmicrohttpd -lusb-1.0 -lrt -Wl,-Bdynamic -lpthread
 endif
 
 include common.mak

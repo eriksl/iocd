@@ -9,6 +9,7 @@ using std::vector;
 
 #include <poll.h>
 #include <stdint.h>
+#include <unistd.h>
 
 class Util
 {
@@ -26,5 +27,6 @@ class Util
 		static string	int_to_string(int)								throw();
 		static string	float_to_string(double, int)					throw();
 		static string	remove_newlines(string)							throw();
+		static string	usb_error_string(ssize_t in)					throw();
 };
 #endif

@@ -20,24 +20,24 @@ DeviceUSBraw::DeviceUSBraw(Interfaces *root_in, ID id_in,
 	libusb_ref_device(device);
 
 	if((rv = libusb_get_device_descriptor(device, &desc)) != 0)
-		throw(minor_exception(string("DD usbraw: libusb_get_device_descriptor: ") + libusb_error_name(rv)));
+		throw(minor_exception(string("DD usbraw: libusb_get_device_descriptor: ") + Util::usb_error_string(rv)));
 
 	vendor	= desc.idVendor;
 	product = desc.idProduct;
 
 	if((rv = libusb_open(device, &handle)) != 0)
-		throw(minor_exception(string("DD usbraw: libusb_open: ") + libusb_error_name(rv)));
+		throw(minor_exception(string("DD usbraw: libusb_open: ") + Util::usb_error_string(rv)));
 
 	if((rv = libusb_detach_kernel_driver(handle, 0)) == 0)
 		Util::dlog("DD usbraw: libusb_detach_kernel_driver: OK\n");
 	else
-		Util::dlog("DD usbraw: libusb_detach_kernel_driver: %s\n", libusb_error_name(rv));
+		Util::dlog("DD usbraw: libusb_detach_kernel_driver: %s\n", Util::usb_error_string(rv).c_str());
 
 	if((rv = libusb_set_configuration(handle, 1)) != 0)
-		throw(minor_exception(string("DD usbraw: libusb_set_configuration: ") + libusb_error_name(rv)));
+		throw(minor_exception(string("DD usbraw: libusb_set_configuration: ") + Util::usb_error_string(rv)));
 
 	if((rv = libusb_claim_interface(handle, 0)) != 0)
-		throw(minor_exception(string("DD usbraw: libusb_claim_interface: ") + libusb_error_name(rv)));
+		throw(minor_exception(string("DD usbraw: libusb_claim_interface: ") + Util::usb_error_string(rv)));
 }
 
 DeviceUSBraw::~DeviceUSBraw() throw()
@@ -49,12 +49,12 @@ DeviceUSBraw::~DeviceUSBraw() throw()
 		if((rv = libusb_release_interface(handle, 0)) == 0)
 			Util::dlog("DD usbraw: libusb_release_interface: OK\n");
 		else
-			Util::dlog("DD usbraw: libusb_release_interface: %s\n", libusb_error_name(rv));
+			Util::dlog("DD usbraw: libusb_release_interface: %s\n", Util::usb_error_string(rv).c_str());
 
 		if((rv = libusb_attach_kernel_driver(handle, 0)) == 0)
 			Util::dlog("DD usbraw: libusb_attach_kernel_driver: OK\n");
 		else
-			Util::dlog("DD usbraw: libusb_attach_kernel_driver: %s\n", libusb_error_name(rv));
+			Util::dlog("DD usbraw: libusb_attach_kernel_driver: %s\n", Util::usb_error_string(rv).c_str());
 
 		libusb_close(handle);
 	}

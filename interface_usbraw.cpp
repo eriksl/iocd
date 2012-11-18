@@ -10,12 +10,12 @@ InterfaceUSBraw::InterfaceUSBraw(Interfaces *root_in, ID id_in) throw(exception)
 	ssize_t rv;
 
 	if((rv = libusb_init(0)) != 0)
-		throw(minor_exception(libusb_error_name(rv)));
+		throw(minor_exception(Util::usb_error_string(rv)));
 
 	libusb_set_debug(0, 3);
 
 	if((rv = libusb_get_device_list(0, &device_list)) < 0)
-		throw(minor_exception(string("II usbraw: ") + libusb_error_name(rv)));
+		throw(minor_exception(string("II usbraw: ") + Util::usb_error_string(rv)));
 }
 
 InterfaceUSBraw::~InterfaceUSBraw() throw()
@@ -59,7 +59,7 @@ void InterfaceUSBraw::interface_command(void *cmdptr) throw(exception)
 
 	if((rv = libusb_interrupt_transfer(cmd->handle, cmd->endpoint,
 					cmd->data, cmd->length, &cmd->transferred, cmd->timeout)) != 0)
-		throw(minor_exception(string("II interrupt_transfer: ") + libusb_error_name(rv)));
+		throw(minor_exception(string("II interrupt_transfer: ") + Util::usb_error_string(rv)));
 }
 
 void InterfaceUSBraw::find_devices() throw()
@@ -91,7 +91,7 @@ template<class DeviceT> void InterfaceUSBraw::probe_device(int vendor, int produ
 					break;
 			}
 			else
-				Util::dlog("II usbraw: error device 0x%04x:0x%04x: %s\n", desc.idVendor, desc.idProduct, libusb_error_name(rv));
+				Util::dlog("II usbraw: error device 0x%04x:0x%04x: %s\n", desc.idVendor, desc.idProduct, Util::usb_error_string(rv).c_str());
 		}
 
 		if(!usbdev)

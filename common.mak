@@ -9,20 +9,26 @@ LDFLAGS			+= -g
 endif
 
 ifeq ($(TARGET), x86_64)
-	CPPFLAGS	+= -DTARGET=x86_64
+	CC			= gcc
+	CPP			= g++
+	CPPFLAGS	+= -DTARGET=x86_64 -DTARGET_X86_64=1
 endif
 
 ifeq ($(TARGET), i386)
-	CPPFLAGS	+= -m32 -DTARGET=i386
+	CC			= gcc
+	CPP			= g++
+	CPPFLAGS	+= -m32 -DTARGET=i386 -DTARGET_I386=1
 	LDFLAGS		+= -m32
 endif
 
 ifeq ($(TARGET), mipsel)
-	EXECPREFIX	= /home/erik/src/openpli/build-dm8000/tmp/cross/mipsel-linux/bin/
-	CPPFLAGS	+= -I/home/erik/src/openpli/build-dm8000/tmp/cross/mipsel-linux/include
-	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mipsel/usr/include
-	CPPFLAGS	+= -DTARGET=mipsel
-	LDFLAGS		+= -L/home/erik/src/libmicrohttpd/mipsel/usr/lib
+	CC			= mipsel-oe-linux-gcc
+	CPP			= mipsel-oe-linux-g++
+	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mips32el/usr/include
+	CPPFLAGS	+= -I/home/erik/src/openpli/build-vuultimo/tmp/sysroots/vuultimo/usr/include/libusb-1.0
+	CPPFLAGS	+= -DTARGET=mipsel -DTARGET_MIPSEL=1
+	LDFLAGS		+= -L/home/erik/src/libmicrohttpd/mips32el/usr/lib
+	LDFLAGS		+= -L/home/erik/src/openpli/build-vuultimo/tmp/sysroots/vuultimo/lib
 endif
 
 ifeq ($(TARGET), ppc)
@@ -89,11 +95,11 @@ $(PROGRAM):	$(OBJS)
 			@$(CPP) $(LDFLAGS) $^ $(LDLIBS) -o $@ 
 
 install:	$(PROGRAM)
-			@echo "INSTALL $(PROGRAM) -> $(DESTDIR)/usr/bin"
-			@mkdir -p $(DESTDIR)/usr/bin
-			@cp $(PROGRAM) $(DESTDIR)/usr/bin
-			@-chown root:root $(DESTDIR)/usr/bin/$(PROGRAM)
-			@-chmod 755 $(DESTDIR)/usr/bin/$(PROGRAM)
+			@echo "INSTALL $(PROGRAM) -> $(DESTDIR)/bin"
+			@mkdir -p $(DESTDIR)/bin
+			@cp $(PROGRAM) $(DESTDIR)/bin
+			@-chown root:root $(DESTDIR)/bin/$(PROGRAM)
+			@-chmod 755 $(DESTDIR)/bin/$(PROGRAM)
 
 clean:
 			@echo "CLEAN"

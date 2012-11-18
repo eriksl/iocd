@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <syslog.h>
 #include <stdio.h>
+#include <libusb.h>
 
 bool Util::isdaemon	= false;
 bool Util::debug	= false;
@@ -100,6 +101,19 @@ string Util::remove_newlines(string in) throw()
 	for(it = in.begin(); it != in.end(); it++)
 		if((*it != '\n') && (*it != '\r'))
 			rv += *it;
+
+	return(rv);
+}
+
+string Util::usb_error_string(ssize_t in) throw()
+{
+	string rv;
+#ifdef TARGET_MIPSEL
+	(void)in;
+	rv = "unspecified libusb error";
+#else
+	rv = libusb_error_name(in);
+#endif
 
 	return(rv);
 }
