@@ -12,7 +12,7 @@ DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, libusb_device *dev_in) t
 	uint8_t packet[8];
 
 	memset(packet, 0, sizeof(packet));
-	packet[0] = DeviceK8055::CMD_RESET;
+	packet[0] = reset;
 
 	if((rv = send_command(sizeof(packet), packet)) != sizeof(packet))
 		throw(minor_exception("DD k8055: error resetting device"));
@@ -61,8 +61,8 @@ void DeviceK8055::find_controls() throw(exception)
 			cp.set(Control::cap_canread);
 			cp.set(Control::cap_cancount);
 
-			control = new Control(root, ID(id.interface, id.device, DeviceK8055::control_input_counter + 1, ix + 1),
-					0, 0xffff, "", 0, cp, DeviceK8055::control_input_counter, ix,
+			control = new Control(root, ID(id.interface, id.device, control_input_counter + 1, ix + 1),
+					0, 0xffff, "", 0, cp, control_input_counter, ix,
 					string("dincnt"), string("Digital input/counter"));
 		}
 		catch(minor_exception e)
@@ -84,8 +84,8 @@ void DeviceK8055::find_controls() throw(exception)
 			cp.set(Control::cap_isdigital);
 			cp.set(Control::cap_canread);
 
-			control = new Control(root, ID(id.interface, id.device, DeviceK8055::control_input_digital + 1, ix + 1),
-					0, 1, "", 0, cp, DeviceK8055::control_input_digital, ix,
+			control = new Control(root, ID(id.interface, id.device, control_input_digital + 1, ix + 1),
+					0, 1, "", 0, cp, control_input_digital, ix,
 					string("din"), string("Digital input"));
 		}
 		catch(minor_exception e)
@@ -106,8 +106,8 @@ void DeviceK8055::find_controls() throw(exception)
 			Control::capset cp;
 			cp.set(Control::cap_canread);
 
-			control = new Control(root, ID(id.interface, id.device, DeviceK8055::control_input_analog + 1, ix + 1),
-					0, 0xff, "", 0, cp, DeviceK8055::control_input_analog, ix,
+			control = new Control(root, ID(id.interface, id.device, control_input_analog + 1, ix + 1),
+					0, 0xff, "", 0, cp, control_input_analog, ix,
 					string("ain"), string("Analog input"));
 		}
 		catch(minor_exception e)
@@ -130,8 +130,8 @@ void DeviceK8055::find_controls() throw(exception)
 			cp.set(Control::cap_canread);
 			cp.set(Control::cap_canwrite);
 
-			control = new Control(root, ID(id.interface, id.device, DeviceK8055::control_output_digital + 1, ix + 1),
-					0, 1, "", 0, cp, DeviceK8055::control_output_digital, ix,
+			control = new Control(root, ID(id.interface, id.device, control_output_digital + 1, ix + 1),
+					0, 1, "", 0, cp, control_output_digital, ix,
 					string("dout"), string("Digital output"));
 		}
 		catch(minor_exception e)
@@ -154,8 +154,8 @@ void DeviceK8055::find_controls() throw(exception)
 			cp.set(Control::cap_canwrite);
 			cp.set(Control::cap_canhardpwm);
 
-			control = new Control(root, ID(id.interface, id.device, DeviceK8055::control_output_analog + 1, ix + 1),
-					0, 0xff, "", 0, cp, DeviceK8055::control_output_analog, ix,
+			control = new Control(root, ID(id.interface, id.device, control_output_analog + 1, ix + 1),
+					0, 0xff, "", 0, cp, control_output_analog, ix,
 					string("aout"), string("Analog output"));
 		}
 		catch(minor_exception e)
@@ -194,7 +194,7 @@ void DeviceK8055::update_outputs(void) throw(exception)
 	ssize_t	rv;
 	uint8_t	packet[8];
 
-	packet[0] = CMD_SET_ANALOG_DIGITAL;
+	packet[0] = set_analog_digital;
 	packet[1] = digital_outputs.to_ulong();
 	packet[2] = analog_outputs[0];
 	packet[3] = analog_outputs[1];
@@ -217,7 +217,7 @@ double DeviceK8055::read(Control *control) throw(exception)
 
 	switch(control->type)
 	{
-		case(DeviceK8055::control_input_counter):
+		case(control_input_counter):
 		{
 			if(ordinal < 0 || ordinal > 1)
 				throw(minor_exception("DD k8055: counter index out of range"));
@@ -226,7 +226,7 @@ double DeviceK8055::read(Control *control) throw(exception)
 			return(double(digital_inputs[ordinal]));
 		}
 
-		case(DeviceK8055::control_input_digital):
+		case(control_input_digital):
 		{
 			if(ordinal < 0 || ordinal > 2)
 				throw(minor_exception("DD k8055: digital input index out of range"));
@@ -235,7 +235,7 @@ double DeviceK8055::read(Control *control) throw(exception)
 			return(double(digital_inputs[ordinal + 2l]));
 		}
 
-		case(DeviceK8055::control_input_analog):
+		case(control_input_analog):
 		{
 			if(ordinal < 0 || ordinal > 2)
 				throw(minor_exception("DD k8055: analog input index out of range"));
@@ -244,7 +244,7 @@ double DeviceK8055::read(Control *control) throw(exception)
 			return(double(analog_inputs[ordinal]));
 		}
 
-		case(DeviceK8055::control_output_digital):
+		case(control_output_digital):
 		{
 			if(ordinal < 0 || ordinal > 7)
 				throw(minor_exception("DD k8055: digital output index out of range"));
@@ -252,7 +252,7 @@ double DeviceK8055::read(Control *control) throw(exception)
 			return(double(digital_outputs[ordinal]));
 		}
 
-		case(DeviceK8055::control_output_analog):
+		case(control_output_analog):
 		{
 			if(ordinal < 0 || ordinal > 1)
 				throw(minor_exception("DD k8055: analog output index out of range"));
@@ -278,7 +278,7 @@ void DeviceK8055::write(Control *control, double value) throw(exception)
 
 	switch(control->type)
 	{
-		case(DeviceK8055::control_output_digital):
+		case(control_output_digital):
 		{
 			if(ordinal < 0 || ordinal > 7)
 				throw(minor_exception("DD k8055: write digital output index out of range"));
@@ -288,7 +288,7 @@ void DeviceK8055::write(Control *control, double value) throw(exception)
 			break;
 		}
 
-		case(DeviceK8055::control_output_analog):
+		case(control_output_analog):
 		{
 			if(ordinal < 0 || ordinal > 1)
 				throw(minor_exception("DD k8055: write analog output index out of range"));
@@ -338,7 +338,7 @@ int DeviceK8055::readresetcounter(Control *control) throw(exception)
 
 	uint8_t counter = readcounter(control);
 
-	packet[0] = ordinal == 0 ? CMD_RESET_COUNTER_1 : CMD_RESET_COUNTER_2;
+	packet[0] = ordinal == 0 ? reset_counter_1 : reset_counter_2;
 
 	if((rv = send_command(sizeof(packet), packet)) != sizeof(packet))
 		throw(major_exception("DD k8055: error writing to device (4)"));

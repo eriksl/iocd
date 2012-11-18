@@ -52,12 +52,12 @@ class DeviceK8055 : public DeviceUSBraw
 
 		typedef enum
 		{
-			CMD_RESET				= 0x00,
+			reset					= 0x00,
 			CMD_SET_DEBOUNCE_1		= 0x01,
 			CMD_SET_DEBOUNCE_2		= 0x01,
-			CMD_RESET_COUNTER_1		= 0x03,
-			CMD_RESET_COUNTER_2		= 0x04,
-			CMD_SET_ANALOG_DIGITAL	= 0x05,
+			reset_counter_1			= 0x03,
+			reset_counter_2			= 0x04,
+			set_analog_digital		= 0x05,
 		} k8055_command;
 
 		typedef bitset<8>	bitset8;
