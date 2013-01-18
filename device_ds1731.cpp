@@ -36,10 +36,9 @@ string DeviceDS1731::name_long() const throw()
 
 double DeviceDS1731::read(Control *) throw(exception)
 {
+	int8_t				v0;
+	uint8_t				v1;
 	Util::byte_array	out;
-	bool				negative;
-	int					temp_hex;
-	double				temp;
 
 	// "w aa r 02 p" read temperature
 	out = command("w aa r 02 p");
@@ -47,14 +46,10 @@ double DeviceDS1731::read(Control *) throw(exception)
 	if(out.size() != 2)
 		throw(minor_exception("read_ds1731: invalid reply"));
 
-	negative	= !!(out[0] & 0x80);
-	temp_hex	= (((out[0] & 0x7f) << 8) | (out[1] & 0xf0)) >> 4;
-	temp		= double(temp_hex) * 0.0625;
+	v0 = out[0];
+	v1 = out[1];
 
-	if(negative)
-		temp = 0 - temp;
-
-	return(temp);
+	return(double(((v0 << 8) | v1) >> 4) * 0.0625);
 }
 
 bool DeviceDS1731::probe() throw()
