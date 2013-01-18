@@ -11,8 +11,6 @@ using std::string;
 #include <bitset>
 using std::bitset;
 
-#include "libusb.h"
-
 class Interfaces;
 class Control;
 

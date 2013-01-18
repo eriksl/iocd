@@ -21,8 +21,14 @@ ifeq ($(TARGET), i386)
 	LDLIBS += -Wl,-Bstatic -lmicrohttpd -lrt -Wl,-Bdynamic -lpthread
 endif
 
+ifeq ($(TARGET), mipsel21)
+	LDLIBS 		+= -Wl,-Bstatic -lmicrohttpd -lusb-1.0 -lrt -Wl,-Bdynamic -lpthread
+	CPPFLAGS	+= -I./hostinclude
+endif
+
 ifeq ($(TARGET), mipsel)
 	LDLIBS 		+= -Wl,-Bstatic -lmicrohttpd -lusb-1.0 -lrt -Wl,-Bdynamic -lpthread
+	CPPFLAGS	+= -I./hostinclude
 endif
 
 include common.mak

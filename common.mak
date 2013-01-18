@@ -21,6 +21,16 @@ ifeq ($(TARGET), i386)
 	LDFLAGS		+= -m32
 endif
 
+ifeq ($(TARGET), mipsel21)
+	CC			=	/home/erik/src/openpli-2.1/build-dm800/tmp/sysroots/x86_64-linux/usr/mipsel/bin/mipsel-oe-linux-gcc
+	CPP			=	/home/erik/src/openpli-2.1/build-dm800/tmp/sysroots/x86_64-linux/usr/mipsel/bin/mipsel-oe-linux-g++
+	CPPFLAGS	+= -DTARGET=mipsel21 -DTARGET_MIPSEL21=1
+	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mipsel21/usr/include
+	CPPFLAGS	+= -I/home/erik/src/libusb/mipsel21/usr/include
+	LDFLAGS		+= -L/home/erik/src/libmicrohttpd/mipsel21/usr/lib
+	LDFLAGS		+= -L/home/erik/src/libusb/mipsel21/usr/lib
+endif
+
 ifeq ($(TARGET), mipsel)
 	CC			= mipsel-oe-linux-gcc
 	CPP			= mipsel-oe-linux-g++
