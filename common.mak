@@ -32,13 +32,13 @@ ifeq ($(TARGET), mipsel21)
 endif
 
 ifeq ($(TARGET), mipsel)
-	CC			= mipsel-oe-linux-gcc
-	CPP			= mipsel-oe-linux-g++
-	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mips32el/usr/include
-	CPPFLAGS	+= -I/home/erik/src/openpli/build-vuultimo/tmp/sysroots/vuultimo/usr/include/libusb-1.0
+	CC			=	/home/erik/src/openpli/build-vuultimo/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux/mipsel-oe-linux-gcc
+	CPP			=	/home/erik/src/openpli/build-vuultimo/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux/mipsel-oe-linux-g++
 	CPPFLAGS	+= -DTARGET=mipsel -DTARGET_MIPSEL=1
+	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mipsel30/usr/include
+	CPPFLAGS	+= -I/home/erik/src/libusb/mipsel30/usr/include
 	LDFLAGS		+= -L/home/erik/src/libmicrohttpd/mips32el/usr/lib
-	LDFLAGS		+= -L/home/erik/src/openpli/build-vuultimo/tmp/sysroots/vuultimo/lib
+	LDFLAGS		+= -L/home/erik/src/libusb/mipsel30/usr/lib
 endif
 
 .PHONY:			all depend clean pristine install rpm dpkg
@@ -119,8 +119,7 @@ rpm:
 #
 			@echo "TAR $(RPMTARBALL)"
 			@-rm -f $(RPMTARBALL) 2> /dev/null
-#			tar cf $(RPMTARBALL) -C .. --exclude rpm --exclude .git $(PROGRAM)
-			tar cf $(RPMTARBALL) -C .. --exclude rpm $(PROGRAM)
+			tar cf $(RPMTARBALL) -C .. --exclude rpm --exclude .git $(PROGRAM)
 #
 			@echo "CREATE RPM $(RPMSPECOUT)"
 			@rpmbuild -bb $(RPMSPECOUT)
