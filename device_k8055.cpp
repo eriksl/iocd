@@ -4,18 +4,27 @@
 #include "util.h"
 
 #include <string.h>
+#include <stddef.h>
 
 DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, libusb_device *dev_in) throw(exception)
 	:	DeviceUSBraw(root_in, id_in, dev_in, 0x01, 0x81)
 {
 	ssize_t	rv;
-	uint8_t packet[8];
+	input_packet_t	input_packet;
+	output_packet_t	output_packet;
 
-	memset(packet, 0, sizeof(packet));
-	packet[0] = reset;
+	memset(&output_packet, 0, sizeof(output_packet));
 
-	if((rv = send_command(sizeof(packet), packet)) != sizeof(packet))
-		throw(minor_exception("DD k8055: error resetting device"));
+	output_packet.command = reset;
+
+	if((rv = send_command(sizeof(output_packet), (uint8_t *)&output_packet)) != sizeof(output_packet))
+		throw(minor_exception("error resetting device (1)"));
+
+	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
+		throw(minor_exception("error resetting device (2)"));
+
+	if(!(input_packet.status & 0x01))
+		throw(minor_exception("error resetting device (3)"));
 
 	analog_outputs[0] = analog_outputs[1] = 0;
 	digital_outputs = 0;
@@ -170,44 +179,54 @@ void DeviceK8055::find_controls() throw(exception)
 
 void DeviceK8055::update_inputs(void) throw(exception)
 {
-	uint8_t	packet[8];
+	input_packet_t	input_packet;
 	ssize_t	rv;
 
-	if((rv = receive_command(sizeof(packet), packet)) != sizeof(packet))
-		throw(major_exception("DD k8055: error reading from device"));
+	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
+		throw(major_exception("DD k8055: error reading from device (1)"));
+
+	if(!(input_packet.status & 0x01))
+		throw(major_exception("DD k8055: error reading from device (2)"));
+
+	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
+		throw(major_exception("DD k8055: error reading from device (3)"));
+
+	if(!(input_packet.status & 0x01))
+		throw(major_exception("DD k8055: error reading from device (4)"));
 
 	digital_inputs =
 	(
-		((packet[offset_digital_input] >> 4) & 0x03) |	/* Input 1 and 2 */
-		((packet[offset_digital_input] << 2) & 0x04) |	/* Input 3 */
-		((packet[offset_digital_input] >> 3) & 0x18)		/* Input 4 and 5 */
+		((input_packet.digital_input >> 4) & 0x03) |	/* input 1 and 2 */
+		((input_packet.digital_input << 2) & 0x04) |	/* input 3 */
+		((input_packet.digital_input >> 3) & 0x18)		/* input 4 and 5 */
 	);
 
-	analog_inputs[0]	= packet[offset_analog_input_1];
-	analog_inputs[1]	= packet[offset_analog_input_2];
-	counters[0]			= (packet[offset_counter_1 + 1] << 8) | (packet[offset_counter_1 + 0]);
-	counters[1]			= (packet[offset_counter_2 + 1] << 8) | (packet[offset_counter_2 + 0]);
+	analog_inputs[0]	= input_packet.analog_input_0;
+	analog_inputs[1]	= input_packet.analog_input_1;
+	counters[0]			= input_packet.counter_0;
+	counters[1]			= input_packet.counter_1;
 }
 
 void DeviceK8055::update_outputs(void) throw(exception)
 {
 	ssize_t	rv;
-	uint8_t	packet[8];
+	input_packet_t	input_packet;
+	output_packet_t	output_packet;
 
-	packet[0] = set_analog_digital;
-	packet[1] = digital_outputs.to_ulong();
-	packet[2] = analog_outputs[0];
-	packet[3] = analog_outputs[1];
+	memset(&output_packet, 0, sizeof(output_packet));
 
-	if((rv = send_command(sizeof(packet), packet)) != sizeof(packet))
+	output_packet.command			= set_analog_digital;
+	output_packet.digital_output	= digital_outputs.to_ulong();
+	output_packet.analog_output_0	= analog_outputs[0];
+	output_packet.analog_output_1	= analog_outputs[1];
+
+	if((rv = send_command(sizeof(output_packet), (uint8_t *)&output_packet)) != sizeof(output_packet))
 		throw(major_exception("DD k8055: error writing to device (1)"));
 
-	memset(packet, 0, sizeof(packet));
-
-	if((rv = receive_command(sizeof(packet), packet)) != sizeof(packet))
+	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
 		throw(major_exception("DD k8055: error writing to device (2)"));
 
-	if(!(packet[1] & 0x01))
+	if(!(input_packet.status & 0x01))
 		throw(major_exception("DD k8055: error writing to device (3)"));
 }
 
@@ -324,31 +343,33 @@ int DeviceK8055::readcounter(Control *control) throw(exception)
 
 	update_inputs();
 
-	return(double(counters[ordinal]));
+	return(counters[ordinal]);
 }
 
 int DeviceK8055::readresetcounter(Control *control) throw(exception)
 {
-	int		ordinal = control->index;
-	ssize_t	rv;
-	uint8_t	packet[8];
+	int				ordinal = control->index;
+	ssize_t			rv;
+	int				counter;
+	input_packet_t	input_packet;
+	output_packet_t	output_packet;
 
 	if(ordinal < 0 || ordinal > 1)
 		throw(minor_exception("DD k8055: reset counter index out of range"));
 
-	uint8_t counter = readcounter(control);
+	counter = readcounter(control);
 
-	packet[0] = ordinal == 0 ? reset_counter_1 : reset_counter_2;
+	memset(&output_packet, 0, sizeof(output_packet));
 
-	if((rv = send_command(sizeof(packet), packet)) != sizeof(packet))
+	output_packet.command = ordinal ? reset_counter_1 : reset_counter_0;
+
+	if((rv = send_command(sizeof(output_packet), (uint8_t *)&output_packet)) != sizeof(output_packet))
 		throw(major_exception("DD k8055: error writing to device (4)"));
 
-	memset(packet, 0, sizeof(packet));
-
-	if((rv = receive_command(sizeof(packet), packet)) != sizeof(packet))
+	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
 		throw(major_exception("DD k8055: error writing to device (5)"));
 
-	if(!(packet[1] & 0x01))
+	if(!(input_packet.status & 0x01))
 		throw(major_exception("DD k8055: error writing to device (6)"));
 
 	return(counter);
