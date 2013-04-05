@@ -124,8 +124,8 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 {
 	Util::byte_array	out;
 	string				range_cmd;
-	int					range_sleep;
 	int					range_multiplier;
+	int					retry;
 	int					ch0, ch1, cch0, cch1;
 	bool				overflow;
 	double				lux;
@@ -133,13 +133,11 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 	if(erange)
 	{
 		range_cmd           = "1d";
-		range_sleep         = 160000;
 		range_multiplier    = 5;
 	}
 	else
 	{
 		range_cmd           = "18";
-		range_sleep         = 800000;
 		range_multiplier    = 1;
 	}
 
@@ -163,54 +161,62 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 	if(out[0] != 0x1b)
 		throw(minor_exception("tsl2550: invalid reply from control\n"));
 
-	usleep(range_sleep);
+	for(retry = 8; retry > 0; retry--)
+	{
+		usleep(20000);
 
-	// w 43 p r 01 p // select channel 0
+		// w 43 p r 01 p // select channel 0
 
-	out = command("w 43 p r 01");
+		out = command("w 43 p r 01");
 	
-	if(out.size() != 1)
-		throw(minor_exception("tsl2550: invalid reply size from control\n"));
+		if(out.size() != 1)
+			throw(minor_exception("tsl2550: invalid reply size from control\n"));
 
-	ch0 = out[0];
+		ch0 = out[0];
 
-	// w 83 p r 01 p // select channel 1
+		// w 83 p r 01 p // select channel 1
 
-	out = command("w 83 p r 01");
+		out = command("w 83 p r 01");
 	
-	if(out.size() != 1)
-		throw(minor_exception("tsl2550: invalid reply size from control\n"));
+		if(out.size() != 1)
+			throw(minor_exception("tsl2550: invalid reply size from control\n"));
 
-	ch1 = out[0];
+		ch1 = out[0];
 
-	overflow = false;
+		overflow = false;
 
-	if(!adc2count(ch0, cch0, overflow))
-	{
-		Util::vlog("tsl2550::read: ch0 invalid\n");
-		return(false);
+		if(!adc2count(ch0, cch0, overflow))
+		{
+			Util::dlog("tsl2550::read: ch0 invalid, retry: %d\n", retry);
+			continue;
+		}
+
+		if(overflow)
+		{
+			Util::dlog("ch0 overflow\n");
+			return(-1);
+		}
+
+		if(!adc2count(ch1, cch1, overflow))
+		{
+			Util::dlog("tsl2550::read: ch1 invalid, retry: %d\n", retry);
+			continue;
+		}
+
+		if(overflow)
+		{
+			Util::dlog("ch1 overflow\n");
+			return(-1);
+		}
+
+		break;
 	}
 
-	if(overflow)
-	{
-		lux = -1;
-		return(true);
-	}
-
-	if(!adc2count(ch1, cch1, overflow))
-	{
-		Util::vlog("tsl2550::read: ch1 invalid\n");
-		return(false);
-	}
+	if(retry == 0)
+		throw(minor_exception("tsl2550::read: invalid data retry exceeded"));
 
 	Util::dlog("ch0 = 0x%x/%d, ch1 = 0x%x/%d\n", ch0, ch0, ch1, ch1);
 	Util::dlog("cch0 = %d, cch1 = %d\n", cch0, cch1);
-
-	if(overflow)
-	{
-		lux = -1;
-		return(true);
-	}
 
 	lux = count2lux(cch0, cch1, range_multiplier);
 	Util::dlog("lux = %f\n", lux);
