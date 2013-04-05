@@ -38,18 +38,6 @@ string DeviceTSL2550::name_long() const throw()
 	return(name_long_static());
 }
 
-double DeviceTSL2550::read(Control *) throw(exception)
-{
-	double lux;
-
-	lux = read_retry(3, true);
-
-	if(lux < 10)
-		lux = read_retry(3, false);
-
-	return(lux);
-}
-
 bool DeviceTSL2550::probe() throw()
 {
 	ostringstream		control_name_short, control_name_long;
@@ -98,6 +86,48 @@ void DeviceTSL2550::find_controls() throw()
 
 	if(control)
 		controls.add(control);
+}
+
+bool DeviceTSL2550::adc2count(int in, int &out, bool &overflow) throw()
+{
+    bool    valid   = !!(in & 0x80);
+    int     chord   = (in & 0x70) >> 4;
+    int     step    = (in & 0x0f);
+
+    if(!valid)
+        return(false);
+
+    if((in & 0x7f) == 0x7f)
+        overflow = true;
+
+    int chordval    = 16.5 * ((1 << chord) - 1);
+    int stepval     = step * (1 << chord);
+
+    out = chordval + stepval;
+
+    return(true);
+}
+
+double DeviceTSL2550::count2lux(int ch0, int ch1, int multiplier) throw()
+{
+    double r, e, l;
+
+    if(ch0 == ch1)
+        r = 0;
+    else
+        r = (double)ch1 / ((double)ch0 - (double)ch1);
+
+    e = exp(-0.181 * r * r);
+    l = ((double)ch0 - (double)ch1) * 0.39 * e * (double)multiplier;
+
+    if(l > 100)
+        l = round(l);
+    else if(l > 10)
+        l = round(l * 10) / 10;
+    else
+        l = round(l * 100)  / 100;
+
+    return(l);
 }
 
 double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
@@ -224,44 +254,14 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 	return(lux);
 }
 
-bool DeviceTSL2550::adc2count(int in, int &out, bool &overflow) throw()
+double DeviceTSL2550::read(Control *) throw(exception)
 {
-    bool    valid   = !!(in & 0x80);
-    int     chord   = (in & 0x70) >> 4;
-    int     step    = (in & 0x0f);
+	double lux;
 
-    if(!valid)
-        return(false);
+	lux = read_retry(3, true);
 
-    if((in & 0x7f) == 0x7f)
-        overflow = true;
+	if(lux < 10)
+		lux = read_retry(3, false);
 
-    int chordval    = 16.5 * ((1 << chord) - 1);
-    int stepval     = step * (1 << chord);
-
-    out = chordval + stepval;
-
-    return(true);
-}
-
-double DeviceTSL2550::count2lux(int ch0, int ch1, int multiplier) throw()
-{
-    double r, e, l;
-
-    if(ch0 == ch1)
-        r = 0;
-    else
-        r = (double)ch1 / ((double)ch0 - (double)ch1);
-
-    e = exp(-0.181 * r * r);
-    l = ((double)ch0 - (double)ch1) * 0.39 * e * (double)multiplier;
-
-    if(l > 100)
-        l = round(l);
-    else if(l > 10)
-        l = round(l * 10) / 10;
-    else
-        l = round(l * 100)  / 100;
-
-    return(l);
+	return(lux);
 }
