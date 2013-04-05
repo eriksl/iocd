@@ -133,7 +133,7 @@ double DeviceTSL2550::count2lux(int ch0, int ch1, int multiplier) throw()
 double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
 {
 	int			attempt;
-	exception	exc;
+	exception	saved_exception;
 
 	for(attempt = 0; attempt < attempts; attempt++)
 	{
@@ -143,11 +143,11 @@ double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
 		}
 		catch(minor_exception e)
 		{
-			exc = e;
+			saved_exception = e;
 		}
 	}
 
-	throw(exc);
+	throw(saved_exception);
 }
 
 double DeviceTSL2550::read_range(bool erange) throw(exception)
