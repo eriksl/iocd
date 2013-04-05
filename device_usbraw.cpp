@@ -38,6 +38,8 @@ DeviceUSBraw::DeviceUSBraw(Interfaces *root_in, ID id_in,
 
 	if((rv = libusb_claim_interface(handle, 0)) != 0)
 		throw(minor_exception(string("DD usbraw: libusb_claim_interface: ") + Util::usb_error_string(rv)));
+
+	Util::dlog("DD usbraw: device@%d,%d detected\n", bus, address);
 }
 
 DeviceUSBraw::~DeviceUSBraw() throw()
@@ -85,7 +87,7 @@ ssize_t DeviceUSBraw::send_command(ssize_t length, uint8_t *data, int timeout) t
 
 		Device::command(&cmd);
 
-		sent			= cmd.transferred;
+		sent = cmd.transferred;
 	}
 	catch(minor_exception e)
 	{
@@ -111,7 +113,7 @@ ssize_t DeviceUSBraw::receive_command(ssize_t length, uint8_t *data, int timeout
 
 		Device::command(&cmd);
 
-		received		= cmd.transferred;
+		received = cmd.transferred;
 	}
 	catch(minor_exception e)
 	{

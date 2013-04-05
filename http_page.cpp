@@ -4,10 +4,6 @@
 #include <pthread.h>
 #include <sys/socket.h>
 
-#include <boost/lexical_cast.hpp>
-using boost::lexical_cast;
-using boost::bad_lexical_cast;
-
 #include "http_server.h"
 #include "interfaces.h"
 #include "interface.h"
@@ -159,10 +155,6 @@ int HttpServer::page_dispatcher_read(MHD_Connection *connection, const string &m
 	{
 		throw;
 	}
-	catch(bad_lexical_cast e)
-	{
-		error = e.what();
-	}
 	catch(...)
 	{
 		error = "unknown error";
@@ -198,7 +190,7 @@ int HttpServer::page_dispatcher_write(MHD_Connection *connection, const string &
 	try
 	{
 		control = _interfaces->find_control(ID(id->second));
-		intval = lexical_cast<int>(value->second);
+		intval = Util::string_to_int(value->second);
 		control->write(intval);
 	}
 	catch(minor_exception e)
@@ -208,10 +200,6 @@ int HttpServer::page_dispatcher_write(MHD_Connection *connection, const string &
 	catch(major_exception e)
 	{
 		throw;
-	}
-	catch(bad_lexical_cast e)
-	{
-		error = e.what();
 	}
 	catch(...)
 	{
@@ -255,10 +243,6 @@ int HttpServer::page_dispatcher_readcounter(MHD_Connection *connection, const st
 	{
 		throw;
 	}
-	catch(bad_lexical_cast e)
-	{
-		error = e.what();
-	}
 	catch(...)
 	{
 		error = "unknown error";
@@ -300,10 +284,6 @@ int HttpServer::page_dispatcher_resetcounter(MHD_Connection *connection, const s
 	catch(major_exception e)
 	{
 		throw;
-	}
-	catch(bad_lexical_cast e)
-	{
-		error = e.what();
 	}
 	catch(...)
 	{
@@ -347,10 +327,6 @@ int HttpServer::page_dispatcher_readpwmmode(MHD_Connection *connection, const st
 	{
 		throw;
 	}
-	catch(bad_lexical_cast e)
-	{
-		error = e.what();
-	}
 	catch(...)
 	{
 		error = "unknown error";
@@ -386,7 +362,7 @@ int HttpServer::page_dispatcher_writepwmmode(MHD_Connection *connection, const s
 	try
 	{
 		control = _interfaces->find_control(ID(id->second));
-		intval = lexical_cast<int>(value->second);
+		intval = Util::string_to_int(value->second);
 		control->writepwmmode(intval);
 	}
 	catch(minor_exception e)
@@ -396,10 +372,6 @@ int HttpServer::page_dispatcher_writepwmmode(MHD_Connection *connection, const s
 	catch(major_exception e)
 	{
 		throw;
-	}
-	catch(bad_lexical_cast e)
-	{
-		error = e.what();
 	}
 	catch(...)
 	{

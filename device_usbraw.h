@@ -9,7 +9,7 @@
 #include <string>
 using std::string;
 
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 
 class Interfaces;
 

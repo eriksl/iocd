@@ -8,7 +8,7 @@ using std::string;
 #include "device_usbraw.h"
 
 #include <stdint.h>
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 
 class Interfaces;
 

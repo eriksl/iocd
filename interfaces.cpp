@@ -108,11 +108,7 @@ void Interfaces::signal(Interfaces::signal_t value) throw()
 
 void Interfaces::probe_interfaces() throw()
 {
-	int	ix;
-
-	for(ix = 0; ix < 2; ix++)
-		probe_interface_1<InterfaceELV>(string("/dev/ttyUSB") + Util::int_to_string(ix));
-
+	probe_interface_1<InterfaceELV>("/dev/elv");
 	probe_interface_0<InterfaceUSBraw>();
 }
 

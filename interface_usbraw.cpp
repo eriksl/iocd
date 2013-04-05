@@ -98,22 +98,30 @@ template<class DeviceT> void InterfaceUSBraw::probe_device(int vendor, int produ
 			throw(minor_exception("device not found"));
 
         device = new DeviceT(root, ID(id.interface, enumerator++), usbdev);
-    }
-    catch(minor_exception e)
-    {
-        error = e.message;
-    }
-    catch(...)
-    {
-        error = "<unspecified error";
-    }
 
-    if(device)
-    {
         Util::dlog("II usbraw: probe for %s successful\n", device->device_id().c_str());
         devices.add(device);
         device->find_controls();
     }
-    else
-        Util::dlog("II usbraw: probe for %s@%04x:%04x unsuccessful: %s\n", DeviceT::name_short_static().c_str(), product, vendor, error.c_str());
+    catch(minor_exception e)
+    {
+		if(device)
+		{
+			delete device;
+			device = 0;
+		}
+        error = e.message;
+    }
+    catch(...)
+    {
+		if(device)
+		{
+			delete device;
+			device = 0;
+		}
+        error = "<unspecified error";
+    }
+
+	if(!device)
+		Util::dlog("II usbraw: probe for %s@%04x:%04x unsuccessful: %s\n", DeviceT::name_short_static().c_str(), product, vendor, error.c_str());
 }

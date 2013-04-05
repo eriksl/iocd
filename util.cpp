@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <syslog.h>
 #include <stdio.h>
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 
 bool Util::isdaemon	= false;
 bool Util::debug	= false;
@@ -93,6 +93,16 @@ string Util::float_to_string(double value, int precision) throw()
 	return(conv.str());
 }
 
+int Util::string_to_int(string in) throw()
+{
+	stringstream conv;
+	int rv;
+
+	conv.str(in);
+	conv >> rv;
+	return(rv);
+}
+
 string Util::remove_newlines(string in) throw()
 {
 	string::iterator	it;
@@ -108,12 +118,12 @@ string Util::remove_newlines(string in) throw()
 string Util::usb_error_string(ssize_t in) throw()
 {
 	string rv;
-#ifdef TARGET_MIPSEL
-	(void)in;
-	rv = "unspecified libusb error";
-#else
+//#ifdef TARGET_MIPSEL
+//	(void)in;
+//	rv = "unspecified libusb error";
+//#else
 	rv = libusb_error_name(in);
-#endif
+//#endif
 
 	return(rv);
 }
