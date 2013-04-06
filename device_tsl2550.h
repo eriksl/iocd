@@ -22,13 +22,19 @@ class DeviceTSL2550 : public DeviceI2C
 
 	private:
 
+		enum sens_t
+		{
+			sens_low,
+			sens_high
+		};
+
 		string	name()											throw();
 		string	description()									throw();
 		double	read(Control *)									throw(exception);
 		bool	probe()											throw();
 		void	find_controls()									throw();
-		double	read_retry(int attempts, bool erange)			throw(exception);
-		double	read_range(bool erange)							throw(exception);
+		double	read_retry(int attempts, sens_t)				throw(exception);
+		double	read_sens(sens_t)								throw(exception);
 		bool	adc2count(int in, int &out, bool &overflow)		throw();
 		double	count2lux(int ch0, int ch1, int multiplier)		throw();
 

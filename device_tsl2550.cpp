@@ -130,7 +130,7 @@ double DeviceTSL2550::count2lux(int ch0, int ch1, int multiplier) throw()
     return(l);
 }
 
-double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
+double DeviceTSL2550::read_retry(int attempts, sens_t sensitivity) throw(exception)
 {
 	int			attempt;
 	exception	saved_exception;
@@ -139,7 +139,7 @@ double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
 	{
 		try
 		{
-			return(read_range(erange));
+			return(read_sens(sensitivity));
 		}
 		catch(minor_exception e)
 		{
@@ -150,25 +150,28 @@ double DeviceTSL2550::read_retry(int attempts, bool erange) throw(exception)
 	throw(saved_exception);
 }
 
-double DeviceTSL2550::read_range(bool erange) throw(exception)
+double DeviceTSL2550::read_sens(sens_t sensitivity) throw(exception)
 {
 	Util::byte_array	out;
-	string				range_cmd;
-	int					range_multiplier;
+	string				sens_cmd;
+	int					sens_multiplier;
 	int					retry;
 	int					ch0, ch1, cch0, cch1;
 	bool				overflow;
 	double				lux;
+	string				sens_id;
 
-	if(erange)
+	if(sensitivity == sens_low)
 	{
-		range_cmd           = "1d";
-		range_multiplier    = 5;
+		sens_cmd			= "1d";
+		sens_multiplier		= 5;
+		sens_id				= "low";
 	}
 	else
 	{
-		range_cmd           = "18";
-		range_multiplier    = 1;
+		sens_cmd			= "18";
+		sens_multiplier		= 1;
+		sens_id				= "high";
 	}
 
 	// s <72> p w 00 p w 03 p r 01 p // cycle power ensure fresh readings
@@ -183,7 +186,7 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 
 	// w <18/1d> p r 01 p // select range mode
 
-	out = command("w " + range_cmd + " p r 01");
+	out = command("w " + sens_cmd + " p r 01");
 	
 	if(out.size() != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));
@@ -191,7 +194,7 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 	if(out[0] != 0x1b)
 		throw(minor_exception("tsl2550: invalid reply from control\n"));
 
-	for(retry = 8; retry > 0; retry--)
+	for(retry = 32; retry > 0; retry--)
 	{
 		usleep(20000);
 
@@ -217,25 +220,25 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 
 		if(!adc2count(ch0, cch0, overflow))
 		{
-			Util::dlog("tsl2550::read: ch0 invalid, retry: %d\n", retry);
+			Util::dlog("tsl2550::read(%s): ch0 invalid, retry: %d\n", sens_id.c_str(), retry);
 			continue;
 		}
 
 		if(overflow)
 		{
-			Util::dlog("ch0 overflow\n");
+			//Util::dlog("ch0 overflow\n");
 			return(-1);
 		}
 
 		if(!adc2count(ch1, cch1, overflow))
 		{
-			Util::dlog("tsl2550::read: ch1 invalid, retry: %d\n", retry);
+			Util::dlog("tsl2550::read(%s): ch1 invalid, retry: %d\n", sens_id.c_str(), retry);
 			continue;
 		}
 
 		if(overflow)
 		{
-			Util::dlog("ch1 overflow\n");
+			//Util::dlog("ch1 overflow\n");
 			return(-1);
 		}
 
@@ -248,8 +251,8 @@ double DeviceTSL2550::read_range(bool erange) throw(exception)
 	Util::dlog("ch0 = 0x%x/%d, ch1 = 0x%x/%d\n", ch0, ch0, ch1, ch1);
 	Util::dlog("cch0 = %d, cch1 = %d\n", cch0, cch1);
 
-	lux = count2lux(cch0, cch1, range_multiplier);
-	Util::dlog("lux = %f\n", lux);
+	lux = count2lux(cch0, cch1, sens_multiplier);
+	Util::dlog("lux(%s) = %f\n", sens_id.c_str(), lux);
 
 	return(lux);
 }
@@ -258,10 +261,16 @@ double DeviceTSL2550::read(Control *) throw(exception)
 {
 	double lux;
 
-	lux = read_retry(3, true);
+	lux = read_retry(3, sens_low);
+
+	if(lux == -1)
+	{
+		Util::dlog("tsl2550::read: overflow\n");
+		return(5000);
+	}
 
 	if(lux < 10)
-		lux = read_retry(3, false);
+		lux = read_retry(3, sens_high);
 
 	return(lux);
 }
