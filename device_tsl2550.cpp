@@ -266,7 +266,7 @@ double DeviceTSL2550::read(Control *) throw(exception)
 	if(lux == -1)
 	{
 		Util::dlog("tsl2550::read: overflow\n");
-		return(5000);
+		return(3000);
 	}
 
 	if(lux < 10)
