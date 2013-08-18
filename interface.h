@@ -22,6 +22,7 @@ class Interface
 	friend class InterfaceUSBraw;
 	friend class Device;
 	friend class DeviceAtmel;
+	friend class DeviceK8055;
 
 	public:
 
@@ -45,16 +46,16 @@ class Interface
 		int 				enumerator;
 
 	private:
-				void	lock()								throw(exception);
-				void	unlock()							throw(exception);
+				void	lock()												throw(exception);
+				void	unlock()											throw(exception);
 
-		virtual void	probe_all_devices()					throw(exception) = 0;
-		virtual	string	device_interface_desc(void *pdata)	throw() = 0;
+		virtual void	probe_all_devices()									throw(exception) = 0;
+		virtual	string	device_interface_desc(void *pdata)					throw() = 0;
 		virtual	ssize_t	write_data(void *device_private_data,
-						const ByteArray &data, int timeout)	throw() = 0;
+						const ByteArray &data, int timeout)					throw() = 0;
 		virtual	ssize_t read_data(void *device_private_data,
-						ByteArray &data, int timeout)		throw() = 0;
+						ByteArray &data, size_t length, int timeout)		throw() = 0;
 		virtual void	release_device(
-						void **device_private_data)			throw() = 0;
+						void **device_private_data)							throw() = 0;
 };
 #endif

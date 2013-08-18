@@ -67,12 +67,12 @@ Controls* Device::device_controls() throw()
 	return(&controls);
 }
 
-ssize_t Device::write_data(const ByteArray &data, int timeout) throw()
+ssize_t Device::write_data(const ByteArray &data, int timeout) throw(exception)
 {
 	return(parent()->write_data(pdata, data, timeout));
 }
 
-ssize_t Device::read_data(ByteArray &data, int timeout) throw()
+ssize_t Device::read_data(ByteArray &data, size_t length, int timeout) throw(exception)
 {
-	return(parent()->read_data(pdata, data, timeout));
+	return(parent()->read_data(pdata, data, length, timeout));
 }

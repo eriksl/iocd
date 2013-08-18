@@ -28,7 +28,7 @@ string DeviceAtmel::name_long_static() throw()
 string DeviceAtmel::name_short() throw()
 {
 	ostringstream rv;
-	rv << name_short_static() << ":" << parent()->device_interface_desc(pdata);
+	rv << name_short_static() << "@" << parent()->device_interface_desc(pdata);
     return(rv.str());
 }
 
@@ -37,11 +37,6 @@ string DeviceAtmel::name_long() throw()
 	ostringstream rv;
 	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(pdata) << ")";
     return(rv.str());
-}
-
-string DeviceAtmel::device_id() throw()
-{
-	return(name_short());
 }
 
 double DeviceAtmel::read(Control *control) throw(exception)
@@ -281,7 +276,12 @@ bool DeviceAtmel::probe() throw()
 			modelname += (char)in[ix];
 		}
 	}
-	catch(iocd_exception e)
+	catch(minor_exception e)
+	{
+		Util::vlog("II probe atmel: %s\n", e.message.c_str());
+		return(false);
+	}
+	catch(major_exception e)
 	{
 		Util::vlog("II probe atmel: %s\n", e.message.c_str());
 		return(false);
@@ -492,7 +492,7 @@ ByteArray DeviceAtmel::command(int expected_length, ByteArray in) throw(exceptio
 	if(write_data(in, 1000) != (ssize_t)in.size())
 		throw(major_exception(string("DeviceAtmel::command: failed to write to device")));
 
-	length = read_data(out, 1000);
+	length = read_data(out, 254, 1000);
 
 	if(length < 4)
 		throw(major_exception(string("DeviceAtmel::command: reply < 4 bytes: ") + Util::int_to_string(length)));

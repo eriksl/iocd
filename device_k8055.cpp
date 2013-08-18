@@ -1,3 +1,4 @@
+#include "interface.h"
 #include "device_k8055.h"
 #include "control.h"
 #include "cppstreams.h"
@@ -6,25 +7,11 @@
 #include <string.h>
 #include <stddef.h>
 
-DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, libusb_device *dev_in) throw(exception)
-	:	DeviceUSBraw(root_in, id_in, dev_in, 0x01, 0x81)
+DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
+		: Device(root_in, id_in, pdata_in)
 {
-	ssize_t	rv;
-	input_packet_t	input_packet;
-	output_packet_t	output_packet;
-
-	memset(&output_packet, 0, sizeof(output_packet));
-
-	output_packet.command = reset;
-
-	if((rv = send_command(sizeof(output_packet), (uint8_t *)&output_packet)) != sizeof(output_packet))
-		throw(minor_exception("error resetting device (1)"));
-
-	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
-		throw(minor_exception("error resetting device (2)"));
-
-	if(!(input_packet.status & 0x01))
-		throw(minor_exception("error resetting device (3)"));
+	if(!probe())
+		throw(minor_exception(string("no k8055 device found at ") + parent()->device_interface_desc(pdata)));
 
 	analog_outputs[0] = analog_outputs[1] = 0;
 	digital_outputs = 0;
@@ -44,14 +31,50 @@ string DeviceK8055::name_long_static() throw()
 	return("Velleman K8055 USB I/O card");
 }
 
-string DeviceK8055::name_short() const throw()
+string DeviceK8055::name_short() throw()
 {
-	return(name_short_static());
+	ostringstream rv;
+	rv << name_short_static() << "@" << parent()->device_interface_desc(pdata);
+    return(rv.str());
 }
 
-string DeviceK8055::name_long() const throw()
+string DeviceK8055::name_long() throw()
 {
-	return(name_long_static());
+	ostringstream rv;
+	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(pdata) << ")";
+    return(rv.str());
+}
+
+bool DeviceK8055::probe() throw()
+{
+	input_packet_t	input_packet;
+	output_packet_t	output_packet;
+
+	memset(&output_packet, 0, sizeof(output_packet));
+
+	output_packet.command = reset;
+
+	try
+	{
+		send_command(&output_packet);
+		receive_command(&input_packet);
+
+		if(!(input_packet.status & 0x01))
+			throw(major_exception("error resetting device"));
+	}
+	catch(minor_exception e)
+	{
+		Util::vlog("II device_k8055 probe: %s\n", e.message.c_str());
+		return(false);
+	}
+	catch(major_exception e)
+	{
+		Util::vlog("II device_k8055 probe: %s\n", e.message.c_str());
+		return(false);
+	}
+
+	Util::vlog("II device_k8055 probe: k8055 found\n");
+	return(true);
 }
 
 void DeviceK8055::find_controls() throw(exception)
@@ -180,19 +203,16 @@ void DeviceK8055::find_controls() throw(exception)
 void DeviceK8055::update_inputs(void) throw(exception)
 {
 	input_packet_t	input_packet;
-	ssize_t	rv;
 
-	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
-		throw(major_exception("DD k8055: error reading from device (1)"));
+	receive_command(&input_packet);
 
 	if(!(input_packet.status & 0x01))
-		throw(major_exception("DD k8055: error reading from device (2)"));
+		throw(major_exception("device_k8055: error reading from device"));
 
-	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
-		throw(major_exception("DD k8055: error reading from device (3)"));
+	receive_command(&input_packet);
 
 	if(!(input_packet.status & 0x01))
-		throw(major_exception("DD k8055: error reading from device (4)"));
+		throw(major_exception("device_k8055: error reading from device"));
 
 	digital_inputs =
 	(
@@ -209,7 +229,6 @@ void DeviceK8055::update_inputs(void) throw(exception)
 
 void DeviceK8055::update_outputs(void) throw(exception)
 {
-	ssize_t	rv;
 	input_packet_t	input_packet;
 	output_packet_t	output_packet;
 
@@ -220,14 +239,11 @@ void DeviceK8055::update_outputs(void) throw(exception)
 	output_packet.analog_output_0	= analog_outputs[0];
 	output_packet.analog_output_1	= analog_outputs[1];
 
-	if((rv = send_command(sizeof(output_packet), (uint8_t *)&output_packet)) != sizeof(output_packet))
-		throw(major_exception("DD k8055: error writing to device (1)"));
-
-	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
-		throw(major_exception("DD k8055: error writing to device (2)"));
+	send_command(&output_packet);
+	receive_command(&input_packet);
 
 	if(!(input_packet.status & 0x01))
-		throw(major_exception("DD k8055: error writing to device (3)"));
+		throw(major_exception("device_k8055: error writing to device"));
 }
 
 double DeviceK8055::read(Control *control) throw(exception)
@@ -348,7 +364,6 @@ int DeviceK8055::readcounter(Control *control) throw(exception)
 int DeviceK8055::readresetcounter(Control *control) throw(exception)
 {
 	int				ordinal = control->index;
-	ssize_t			rv;
 	int				counter;
 	input_packet_t	input_packet;
 	output_packet_t	output_packet;
@@ -362,14 +377,58 @@ int DeviceK8055::readresetcounter(Control *control) throw(exception)
 
 	output_packet.command = ordinal ? reset_counter_1 : reset_counter_0;
 
-	if((rv = send_command(sizeof(output_packet), (uint8_t *)&output_packet)) != sizeof(output_packet))
-		throw(major_exception("DD k8055: error writing to device (4)"));
-
-	if((rv = receive_command(sizeof(input_packet), (uint8_t *)&input_packet)) != sizeof(input_packet))
-		throw(major_exception("DD k8055: error writing to device (5)"));
+	send_command(&output_packet);
+	receive_command(&input_packet);
 
 	if(!(input_packet.status & 0x01))
-		throw(major_exception("DD k8055: error writing to device (6)"));
+		throw(major_exception("device_k8055: error writing to device"));
 
 	return(counter);
+}
+
+void DeviceK8055::send_command(output_packet_t const *data) throw(exception)
+{
+	ssize_t rv;
+	ByteArray array;
+
+	array.from_memory(sizeof(output_packet_t), (const uint8_t *)data);
+
+	Util::dlog("send_command: send packet:");
+
+	int ix;
+
+	for(ix = 0; ix < (int)array.size(); ix++)
+		Util::dlog(" %02x", array[ix]);
+
+	Util::dlog("\n");
+
+	rv = write_data(array, 1000);
+
+	if(rv != sizeof(output_packet_t))
+		throw(major_exception(string("device_k8055: send command error, rv = ") + Util::int_to_string(rv)));
+}
+
+void DeviceK8055::receive_command(input_packet_t *data) throw(exception)
+{
+	size_t length, rv;
+	uint8_t *ptr;
+	ByteArray array;
+
+	rv		= read_data(array, sizeof(*data), 1000);
+	ptr		= array.to_memory(&length);
+	*data	= *(input_packet_t *)ptr;
+
+	Util::dlog("receive_command: receive packet:");
+
+	int ix;
+
+	for(ix = 0; ix < (int)sizeof(input_packet_t); ix++)
+		Util::dlog(" %02x", ((uint8_t *)data)[ix]);
+
+	Util::dlog("\n");
+
+	delete [] ptr;
+
+	if(rv != sizeof(input_packet_t))
+		throw(major_exception(string("device_k8055: receive command error")));
 }

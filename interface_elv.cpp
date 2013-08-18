@@ -1,5 +1,4 @@
 #include "interface_elv.h"
-#include "device_atmel.h"
 #include "device_tmp275.h"
 #include "device_digipicco.h"
 #include "device_tsl2550.h"
@@ -263,8 +262,8 @@ void InterfaceELV::interface_command(void *cmdptr) throw(exception)
 
 void InterfaceELV::find_devices() throw()
 {
-	probe_device<DeviceAtmel>(0x02);
-	probe_device<DeviceAtmel>(0x03);
+	//probe_device<DeviceAtmel>(0x02); // FIXME
+	//probe_device<DeviceAtmel>(0x03); // FIXME
 	probe_device<DeviceTMP275>(0x49);
 	probe_device<DeviceDigipicco>(0x78);
 	probe_device<DeviceTSL2550>(0x39);
@@ -292,7 +291,7 @@ template<class DeviceT> void InterfaceELV::probe_device(int address) throw()
 
 	if(device)
 	{
-		Util::dlog("DD probe for %s successful\n", device->device_id().c_str());
+		Util::dlog("DD probe for %s successful\n", device->short_name().c_str());
 		devices.add(device);
 		device->find_controls();
 	}

@@ -1,9 +1,9 @@
 #ifndef _device_k8055_h_
 #define _device_k8055_h_
 
+#include "device.h"
 #include "id.h"
 #include "exception.h"
-#include "device_usbraw.h"
 
 #include <string>
 using std::string;
@@ -14,18 +14,17 @@ using std::bitset;
 class Interfaces;
 class Control;
 
-class DeviceK8055 : public DeviceUSBraw
+class DeviceK8055 : public Device
 {
 	public:
 
 		friend class InterfaceUSBraw;
 
-				DeviceK8055(Interfaces *root, ID,
-					libusb_device *dev)					throw(exception);
-		virtual	~DeviceK8055()							throw();
+				DeviceK8055(Interfaces *root, ID, void *pdata)	throw(exception);
+		virtual	~DeviceK8055()									throw();
 
-		string	name_short()					const	throw();
-		string	name_long()						const	throw();
+		string	name_short()									throw();
+		string	name_long()										throw();
 
 	private:
 
@@ -78,18 +77,23 @@ class DeviceK8055 : public DeviceUSBraw
 		bitset8	digital_outputs;
 		uint8_t	analog_outputs[2];
 
-		void	update_inputs(void)						throw(exception);
-		void	update_outputs(void)					throw(exception);
+		void	update_inputs(void)							throw(exception);
+		void	update_outputs(void)						throw(exception);
 
-		double	read(Control *)							throw(exception);
-		void	write(Control *, double)				throw(exception);
-		double	readwrite(Control *, double)			throw(exception);
-		int		readcounter(Control *)					throw(exception);
-		int		readresetcounter(Control *)				throw(exception);
-		void	find_controls()							throw(exception);
+		double	read(Control *)								throw(exception);
+		void	write(Control *, double)					throw(exception);
+		double	readwrite(Control *, double)				throw(exception);
+		int		readcounter(Control *)						throw(exception);
+		int		readresetcounter(Control *)					throw(exception);
 
-		static string name_short_static()				throw();
-		static string name_long_static()				throw();
+		bool	probe()										throw();
+		void	find_controls()								throw(exception);
+
+		void	send_command(const output_packet_t *)		throw(exception);
+		void	receive_command(input_packet_t *)			throw(exception);
+
+		static string name_short_static()					throw();
+		static string name_long_static()					throw();
 
 };
 #endif

@@ -24,7 +24,6 @@ class DeviceAtmel : public Device
 
 		string	name_short()									throw();
 		string	name_long()										throw();
-		string	device_id()										throw();
 
 	private:
 

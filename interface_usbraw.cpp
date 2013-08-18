@@ -1,6 +1,6 @@
 #include "interface_usbraw.h"
 #include "devices.h"
-//#include "device_k8055.h"
+#include "device_k8055.h"
 #include "device_atmel.h"
 #include "cppstreams.h"
 #include "util.h"
@@ -47,7 +47,7 @@ string InterfaceUSBraw::device_interface_desc(void *pdata_void) throw()
 	bus		= libusb_get_bus_number(pdata->device);
 	address = libusb_get_device_address(pdata->device);
 	unlock();
-    rv << name_short() << "@" << bus << ":" << address;
+    rv << bus << ":" << address;
 
     return(rv.str());
 }
@@ -69,8 +69,8 @@ string InterfaceUSBraw::interface_id() throw()
 
 void InterfaceUSBraw::probe_all_devices() throw(exception)
 {
-	//probe_device<DeviceK8055>(0x10cf, 0x5500);
-	//probe_device<DeviceK8055>(0x10cf, 0x5502);
+	probe_single_device<DeviceK8055>(0x01, 0x81, 0x10cf, 0x5500);
+	probe_single_device<DeviceK8055>(0x01, 0x81, 0x10cf, 0x5502);
 	probe_single_device<DeviceAtmel>(0x00, 0x00, 0x16c0, 0x05dc);
 }
 
@@ -183,7 +183,7 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
 
         device = new DeviceT(root, ID(id.interface, enumerator++), pdata);
 
-        Util::vlog("II if_usbraw: probe for %s successful\n", device->device_id().c_str());
+        Util::vlog("II if_usbraw: probe for %s successful\n", device->name_short().c_str());
         devices.add(device);
         device->find_controls();
     }
@@ -264,6 +264,8 @@ ssize_t InterfaceUSBraw::write_data(void *pdata_void, const ByteArray &byte_arra
 
 	if_usbraw_pdata_t *pdata = (if_usbraw_pdata_t *)pdata_void;
 
+	Util::dlog("DD if_usbraw: write_data, write_endpoint = %02x\n", pdata->write_endpoint);
+
 	data = byte_array.to_memory(&length);
 
 	lock();
@@ -298,14 +300,15 @@ ssize_t InterfaceUSBraw::write_data(void *pdata_void, const ByteArray &byte_arra
 	return(transferred);
 }
 
-ssize_t InterfaceUSBraw::read_data(void *pdata_void, ByteArray &byte_array, int timeout) throw()
+ssize_t InterfaceUSBraw::read_data(void *pdata_void, ByteArray &byte_array, size_t length, int timeout) throw()
 {
-	uint8_t	data[254];
-	size_t	length = sizeof(data);
+	uint8_t	*data = new uint8_t[length];
 	ssize_t rv;
 	int transferred;
 
 	if_usbraw_pdata_t *pdata = (if_usbraw_pdata_t *)pdata_void;
+
+	Util::dlog("DD if_usbraw: read_data, read_endpoint = %02x\n", pdata->read_endpoint);
 
 	lock();
 
@@ -328,6 +331,8 @@ ssize_t InterfaceUSBraw::read_data(void *pdata_void, ByteArray &byte_array, int 
 
 	unlock();
 
+	Util::dlog("DD if_usbraw.read_data: length = %d, read %d bytes\n", length, transferred);
+
 	if(rv < 0)
 	{
 		Util::vlog("II if_usbraw.read_data: %s\n", Util::usb_error_string(rv).c_str());
@@ -335,6 +340,8 @@ ssize_t InterfaceUSBraw::read_data(void *pdata_void, ByteArray &byte_array, int 
 	}
 
 	byte_array.from_memory(transferred, data);
+
+	delete [] data;
 
 	return(transferred);
 }

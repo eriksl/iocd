@@ -28,7 +28,6 @@ class Device
 		virtual void	find_controls()							throw(exception)	= 0;
 		virtual string	name_short()							throw()				= 0;
 		virtual	string	name_long()								throw()				= 0;
-		virtual	string	device_id()								throw()				= 0;
 
 		Controls*		device_controls()						throw();
 
@@ -39,10 +38,10 @@ class Device
 				Controls 			controls;
 				Interfaces* const	root;
 
-				Interface*			parent()					throw(exception);
+				Interface*			parent()							throw(exception);
 
-		ssize_t	write_data(const ByteArray &data, int timeout)	throw();
-		ssize_t read_data(ByteArray &data, int timeout)			throw();
+		ssize_t	write_data(const ByteArray &data, int timeout)			throw(exception);
+		ssize_t read_data(ByteArray &data, size_t length, int timeout)	throw(exception);
 
 	private:
 

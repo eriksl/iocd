@@ -47,7 +47,7 @@ class InterfaceUSBraw : public Interface
 		virtual	ssize_t	write_data(void *pdata,
 						const ByteArray &data, int timeout)					throw();
 		virtual	ssize_t read_data(void *device_private_data,
-						ByteArray &data, int timeout)						throw();
+						ByteArray &data, size_t length, int timeout)		throw();
 		virtual	void	release_device(
 						void **device_private_data)							throw();
 };

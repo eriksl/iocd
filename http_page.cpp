@@ -424,7 +424,7 @@ int HttpServer::page_dispatcher_info(MHD_Connection *connection, const string &m
 	data += "<td>" + interface->name_long() + "</td>\n";
 	data += "<td>" + device->name_long() + "</td>\n";
 	data += "<td>" + string(control->id) + "</td>\n";
-	data += "<td>" + interface->interface_id() + "/" + device->device_id() + "/" + control->control_id + "</td>\n";
+	data += "<td>" + interface->interface_id() + "/" + device->name_short() + "/" + control->control_id + "</td>\n";
 	data += "<td>" + control->name_short + "</td>\n";
 	data += "<td>" + control->name_long + "</td>\n";
 	data += "<td>" + control->capabilities() + "</td>\n";

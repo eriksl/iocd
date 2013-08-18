@@ -128,10 +128,9 @@ int main(int argc, char ** argv)
 
 				for(device = interface->second->interface_devices()->begin(); device != interface->second->interface_devices()->end(); device++)
 				{
-					Util::vlog("    device: [l:%s] [s:%s] [i:%s] {%s}\n",
+					Util::vlog("    device: [l:%s] [s:%s] {%s}\n",
 							device->second->name_long().c_str(),
 							device->second->name_short().c_str(),
-							device->second->device_id().c_str(),
 							string(device->second->id).c_str());
 
 					for(control = device->second->device_controls()->begin(); control != device->second->device_controls()->end(); control++)
