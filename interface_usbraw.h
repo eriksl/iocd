@@ -5,7 +5,6 @@
 using std::string;
 
 #include "interface.h"
-#include "device_usbraw.h"
 
 #include <stdint.h>
 #include <libusb-1.0/libusb.h>
@@ -14,10 +13,9 @@ class Interfaces;
 
 class InterfaceUSBraw : public Interface
 {
-	public:
+	friend class Interfaces;
 
-		friend class Interfaces;
-		friend class DeviceUSBraw;
+	public:
 
 				InterfaceUSBraw(Interfaces *root, ID id)	throw(exception);
 		virtual	~InterfaceUSBraw()							throw();
@@ -25,29 +23,33 @@ class InterfaceUSBraw : public Interface
 		static string name_short_static()	throw();
 		static string name_long_static()	throw();
 
-		string	name_short()										const	throw();
-		string	name_long()											const	throw();
-		string	interface_id()										const	throw();
-
-	protected:
-
-		libusb_device	**device_list;
+		string	name_short()	throw();
+		string	name_long()		throw();
+		string	interface_id()	throw();
 
 	private:
 
-		struct cmd_t
+		struct if_usbraw_pdata_t
 		{
-			int						endpoint;
-			libusb_device_handle	*handle;
-			int						timeout;
-			int						length;
-			int						transferred;
-			uint8_t					*data;
+			libusb_device				*device;
+			libusb_device_descriptor	*descriptor;
+			libusb_device_handle		*handle;
+			uint8_t						write_endpoint;
+			uint8_t						read_endpoint;
 		};
 
-		void	interface_command(void *)									throw(exception);
-		void	find_devices()												throw();
-		template<class DeviceT> void probe_device(int vendor, int product)	throw();
+		template<class DeviceT> void probe_single_device(
+				uint8_t write_endpoint, uint8_t read_endpoint,
+				int vendor, int product, int version = -1)					throw();
+
+		virtual	void	probe_all_devices()									throw(exception);
+		virtual	string	device_interface_desc(void *device_private_data)	throw();
+		virtual	ssize_t	write_data(void *pdata,
+						const ByteArray &data, int timeout)					throw();
+		virtual	ssize_t read_data(void *device_private_data,
+						ByteArray &data, int timeout)						throw();
+		virtual	void	release_device(
+						void **device_private_data)							throw();
 };
 
 #endif

@@ -1,32 +1,36 @@
-WARNINGS		= -Wall -Wextra -Wshadow -Wundef -Wformat=2 -Winit-self -Wunused -Werror -Wpointer-arith -Wcast-qual -Wmultichar -fno-rtti
+CWARNINGS		= -Wall -Wextra -Wshadow -Wundef -Wformat=2 -Winit-self -Wunused -Werror -Wpointer-arith -Wcast-qual -Wmultichar
+CPPWARNINGS		= 
+
+CFLAGS			+= $(CWARNINGS)
+CPPFLAGS		+= $(CPPWARNINGS) -std=c++11 -fno-rtti
 
 ifneq ($(DEBUG), on)
-CPPFLAGS		+= -O2 $(WARNINGS)
+CFLAGS			+= -O2
 LDFLAGS			+= -s
 else
-CPPFLAGS		+= -O0 -g $(WARNINGS)
+CFLAGS			+= -O0 -g
 LDFLAGS			+= -g
 endif
 
 ifeq ($(TARGET), x86_64)
 	CC			= gcc
 	CPP			= g++
-	CPPFLAGS	+= -DTARGET=x86_64 -DTARGET_X86_64=1
+	CFLAGS		+= -DTARGET=x86_64 -DTARGET_X86_64=1
 endif
 
 ifeq ($(TARGET), i386)
 	CC			= gcc
 	CPP			= g++
-	CPPFLAGS	+= -m32 -DTARGET=i386 -DTARGET_I386=1
+	CFLAGS		+= -m32 -DTARGET=i386 -DTARGET_I386=1
 	LDFLAGS		+= -m32
 endif
 
 ifeq ($(TARGET), mipsel21)
 	CC			=	/home/erik/src/openpli-2.1/build-dm800/tmp/sysroots/x86_64-linux/usr/mipsel/bin/mipsel-oe-linux-gcc
 	CPP			=	/home/erik/src/openpli-2.1/build-dm800/tmp/sysroots/x86_64-linux/usr/mipsel/bin/mipsel-oe-linux-g++
-	CPPFLAGS	+= -DTARGET=mipsel21 -DTARGET_MIPSEL21=1
-	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mipsel21/usr/include
-	CPPFLAGS	+= -I/home/erik/src/libusb/mipsel21/usr/include
+	CFLAGS		+= -DTARGET=mipsel21 -DTARGET_MIPSEL21=1
+	CFLAGS		+= -I/home/erik/src/libmicrohttpd/mipsel21/usr/include
+	CFLAGS		+= -I/home/erik/src/libusb/mipsel21/usr/include
 	LDFLAGS		+= -L/home/erik/src/libmicrohttpd/mipsel21/usr/lib
 	LDFLAGS		+= -L/home/erik/src/libusb/mipsel21/usr/lib
 endif
@@ -34,9 +38,9 @@ endif
 ifeq ($(TARGET), mipsel)
 	CC			=	/home/erik/src/openpli/build-vuultimo/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux/mipsel-oe-linux-gcc
 	CPP			=	/home/erik/src/openpli/build-vuultimo/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux/mipsel-oe-linux-g++
-	CPPFLAGS	+= -DTARGET=mipsel -DTARGET_MIPSEL=1
-	CPPFLAGS	+= -I/home/erik/src/libmicrohttpd/mipsel30/usr/include
-	CPPFLAGS	+= -I/home/erik/src/libusb/mipsel30/usr/include
+	CFLAGS		+= -DTARGET=mipsel -DTARGET_MIPSEL=1
+	CFLAGS		+= -I/home/erik/src/libmicrohttpd/mipsel30/usr/include
+	CFLAGS		+= -I/home/erik/src/libusb/mipsel30/usr/include
 	LDFLAGS		+= -L/home/erik/src/libmicrohttpd/mips32el/usr/lib
 	LDFLAGS		+= -L/home/erik/src/libusb/mipsel30/usr/lib
 endif
@@ -79,17 +83,24 @@ endif
 depend:		.deps
 
 .deps:		$(DEPS)
+			@echo "DEPEND ALL"
 			@cat $^ /dev/null > $@
 
-.%.d:		%.cpp
-			@$(CPP) $(CPPFLAGS) -M $^ -o $@
-
 .%.d:		%.c
-			@$(CPP) $(CPPFLAGS) -M $^ -o $@
+			@echo "DEPEND c $<"
+			@$(CPP) $(CFLAGS) $(CCFLAGS) -M $^ -o $@
+
+.%.d:		%.cpp
+			@echo "DEPEND c++ $<"
+			@$(CPP) $(CFLAGS) $(CPPFLAGS) -M $^ -o $@
+
+%.o:		%.c
+			@echo "CC $< -> $@"
+			@$(CPP) $(CFLAGS) $(CCFLAGS) -c $< -o $@
 
 %.o:		%.cpp
 			@echo "CPP $< -> $@"
-			@$(CPP) $(CPPFLAGS) -c $< -o $@
+			@$(CPP) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(PROGRAM):	$(OBJS)
 			@echo "LD $@"
@@ -104,7 +115,7 @@ install:	$(PROGRAM)
 
 clean:
 			@echo "CLEAN"
-			rm -f $(PROGRAM) $(OBJS) 2> /dev/null || true
+			rm -f $(PROGRAM) $(OBJS) $(DEPS) .deps 2> /dev/null || true
 
 pristine:	
 			@echo "PRISTINE"

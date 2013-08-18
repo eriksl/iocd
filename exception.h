@@ -7,43 +7,34 @@ using std::string;
 #include <exception>
 using std::exception;
 
-class minor_exception : public exception
+class iocd_exception : public exception
 {
 	public:
 
 		string	message;
-		minor_exception(string msg) : message(msg)
-		{
-		}
-		virtual	~minor_exception() throw()
-		{
-		}
+		iocd_exception(string msg) throw() : message(msg) {}
+		virtual	~iocd_exception() throw() {}
 };
 
-class major_exception : public exception
+class minor_exception : public iocd_exception
 {
 	public:
 
-		string	message;
-		major_exception(string msg) : message(msg)
-		{
-		}
-		virtual	~major_exception() throw()
-		{
-		}
+		minor_exception(string msg) throw() : iocd_exception(msg) {}
 };
 
-class fatal_exception : public exception
+class major_exception : public iocd_exception
 {
 	public:
 
-		string	message;
-		fatal_exception(string msg) : message(msg)
-		{
-		}
-		virtual	~fatal_exception() throw()
-		{
-		}
+		major_exception(string msg) throw() : iocd_exception(msg) {}
+};
+
+class fatal_exception : public iocd_exception
+{
+	public:
+
+		fatal_exception(string msg) throw() : iocd_exception(msg) {}
 };
 
 #endif

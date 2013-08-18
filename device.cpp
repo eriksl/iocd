@@ -2,9 +2,10 @@
 #include "interface.h"
 #include "device.h"
 
-Device::Device(Interfaces *root_in, ID id_in) throw(exception)
+Device::Device(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
 	:
 		id(id_in),
+		pdata(pdata_in),
 		controls(),
 		root(root_in)
 {
@@ -12,11 +13,8 @@ Device::Device(Interfaces *root_in, ID id_in) throw(exception)
 
 Device::~Device() throw()
 {
-}
-
-void Device::command(void *cmd) throw(exception)
-{
-	parent()->command(cmd);
+	if(pdata)
+		parent()->release_device(&pdata);
 }
 
 double Device::read(Control *) throw(exception)
@@ -67,4 +65,14 @@ Interface* Device::parent() throw(exception)
 Controls* Device::device_controls() throw()
 {
 	return(&controls);
+}
+
+ssize_t Device::write_data(const ByteArray &data, int timeout) throw()
+{
+	return(parent()->write_data(pdata, data, timeout));
+}
+
+ssize_t Device::read_data(ByteArray &data, int timeout) throw()
+{
+	return(parent()->read_data(pdata, data, timeout));
 }

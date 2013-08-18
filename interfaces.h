@@ -40,6 +40,7 @@ class Interfaces
 		iterator	begin()							throw();
 		iterator	end()							throw();
 		size_t		count()							throw();
+		void		remove(ID)						throw();
 		void		clear()							throw();
 
 		Interface*	find_interface(ID)				throw(exception);

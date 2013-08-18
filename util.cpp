@@ -41,7 +41,7 @@ void Util::dlog(const char * format, ...) throw()
     va_end(ap);
 }
 
-int Util::parse_bytes(string str, byte_array & values) throw()
+int Util::parse_bytes(string str, ByteArray & values) throw()
 {
 	stringstream	conv;
 	int				byte;
@@ -86,6 +86,13 @@ string Util::int_to_string(int in) throw()
 	return(conv.str());
 }
 
+string Util::hex_to_string(int in, int width) throw()
+{
+	stringstream conv;
+	conv << setw(width) << setfill('0') << hex << in;
+	return(conv.str());
+}
+
 string Util::float_to_string(double value, int precision) throw()
 {
 	stringstream conv;
@@ -124,6 +131,52 @@ string Util::usb_error_string(ssize_t in) throw()
 //#else
 	rv = libusb_error_name(in);
 //#endif
+
+	return(rv);
+}
+
+void ByteArray::from_memory(size_t length, const uint8_t *memory) throw()
+{
+	while(length-- > 0)
+		push_back(*memory++);
+}
+
+uint8_t *ByteArray::to_memory(size_t *length) const throw()
+{
+	vector<uint8_t>::const_iterator it;
+	uint8_t *base	= new uint8_t[size()];
+	uint8_t *ptr = base;
+
+	*length = 0;
+
+	for(it = begin(); it != end(); it++)
+	{
+		(*length)++;
+		*(ptr++) = *it;
+	}
+
+	return(base);
+}
+
+ByteArray::operator string() const throw()
+{
+	string	rv;
+	vector<uint8_t>::const_iterator it;
+	ostringstream conv;
+
+	conv.str("");
+	conv << "[" << size() << "]";
+	rv = conv.str();
+
+	for(it = begin(); it != end(); it++)
+	{
+		//conv.str(" ");
+		//conv << setw(2) << setfill('0') << hex << *it;
+		//rv += conv.str();
+
+		rv += " ";
+		rv += Util::hex_to_string(*it, 2);
+	}
 
 	return(rv);
 }

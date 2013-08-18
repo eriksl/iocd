@@ -22,21 +22,27 @@ class Device
 
 		const	ID	id;
 
-				Device(Interfaces *root, ID id)					throw(exception);
+				Device(Interfaces *root, ID id, void *pdata)	throw(exception);
 		virtual	~Device()										throw();
 
 		virtual void	find_controls()							throw(exception)	= 0;
-		virtual string	name_short()					const	throw()				= 0;
-		virtual	string	name_long()						const	throw()				= 0;
-		virtual	string	device_id()						const	throw()				= 0;
+		virtual string	name_short()							throw()				= 0;
+		virtual	string	name_long()								throw()				= 0;
+		virtual	string	device_id()								throw()				= 0;
 
 		Controls*		device_controls()						throw();
 
 	protected:
 
+				void 				*pdata;
+
 				Controls 			controls;
 				Interfaces* const	root;
-		virtual void				command(void *cmd)			throw(exception);
+
+				Interface*			parent()					throw(exception);
+
+		ssize_t	write_data(const ByteArray &data, int timeout)	throw();
+		ssize_t read_data(ByteArray &data, int timeout)			throw();
 
 	private:
 
@@ -48,7 +54,5 @@ class Device
 		virtual	int		readpwmmode(Control *)					throw(exception);
 		virtual	void	writepwmmode(Control *, int value)		throw(exception);
 		virtual	string	readpwmmode_string(Control *)			throw(exception);
-
-		Interface*		parent()								throw(exception);
 };
 #endif

@@ -11,20 +11,29 @@ using std::vector;
 #include <stdint.h>
 #include <unistd.h>
 
-class Util
+class ByteArray : public vector<uint8_t>
 {
 	public:
 
-		typedef vector<uint8_t> byte_array;
+		void	from_memory(size_t length, const uint8_t *data)	throw();
+		uint8_t	*to_memory(size_t *length) const throw();
+
+				operator string() const throw();
+};
+
+class Util
+{
+	public:
 
 		static	bool	isdaemon;
 		static	bool	debug;
 
 		static void		vlog(const char * format, ...)					throw();
 		static void		dlog(const char * format, ...)					throw();
-		static int		parse_bytes(string str, byte_array & values)	throw();
+		static int		parse_bytes(string str, ByteArray & values)		throw();
 		static int		timespec_diff(timespec from, timespec to)		throw();
 		static string	int_to_string(int)								throw();
+		static string	hex_to_string(int, int width = 4)				throw();
 		static int		string_to_int(string)							throw();
 		static string	float_to_string(double, int)					throw();
 		static string	remove_newlines(string)							throw();

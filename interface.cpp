@@ -8,7 +8,6 @@ Interface::Interface(Interfaces *root_in, ID id_in) throw(exception)
 	:
 		id(id_in),
 		root(root_in),
-		fd(-1),
 		enumerator(1)
 {
 	pthread_mutex_init(&mutex, 0);
@@ -16,44 +15,12 @@ Interface::Interface(Interfaces *root_in, ID id_in) throw(exception)
 
 Interface::~Interface() throw()
 {
-	if(fd >= 0)
-		::close(fd);
-
 	pthread_mutex_destroy(&mutex);
-}
-
-void Interface::command(void *cmd) throw(exception)
-{
-	string result;
-
-	try
-	{
-		lock();
-		interface_command(cmd);
-		unlock();
-	}
-	catch(...)
-	{
-		try
-		{
-			unlock();
-		}
-		catch(...)
-		{
-		}
-
-		throw;
-	}
 }
 
 Devices* Interface::interface_devices() throw()
 {
 	return(&devices);
-}
-
-void Interface::find_devices() throw(exception)
-{
-	throw(minor_exception("Device::find_devices called"));
 }
 
 void Interface::lock() throw(exception)

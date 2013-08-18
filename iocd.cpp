@@ -99,6 +99,27 @@ int main(int argc, char ** argv)
 
 			for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
 			{
+				if(interface->second->interface_devices()->begin() == interface->second->interface_devices()->end())
+				{
+
+					Util::dlog("DD delete interface: [l:%s] [s:%s] [i:%s] {%s}\n",
+						interface->second->name_long().c_str(),
+						interface->second->name_short().c_str(),
+						interface->second->interface_id().c_str(),
+						string(interface->second->id).c_str());
+
+					interfaces.remove(interface->second->id);
+
+					if(interfaces.count() > 0)
+						interface = interfaces.begin();
+					else
+						break;
+				}
+
+			}
+
+			for(interface = interfaces.begin(); interface != interfaces.end(); interface++)
+			{
 				Util::vlog("interface: [l:%s] [s:%s] [i:%s] {%s}\n",
 						interface->second->name_long().c_str(),
 						interface->second->name_short().c_str(),

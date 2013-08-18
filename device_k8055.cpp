@@ -326,7 +326,6 @@ void DeviceK8055::write(Control *control, double value) throw(exception)
 	update_outputs();
 }
 
-
 double DeviceK8055::readwrite(Control *control, double value) throw(exception)
 {
 	double prev = this->read(control);

@@ -1,7 +1,7 @@
 #ifndef _device_atmel_h_
 #define _device_atmel_h_
 
-#include "device_i2c.h"
+#include "device.h"
 #include "id.h"
 #include "exception.h"
 #include "util.h"
@@ -9,20 +9,22 @@
 #include <string>
 using std::string;
 
-class InterfaceELV;
 class Control;
+class Interfaces;
 
-class DeviceAtmel : public DeviceI2C
+class DeviceAtmel : public Device
 {
+	friend class Interface;
+	friend class InterfaceUSBraw;
+
 	public:
 
-		friend class InterfaceELV;
-
-				DeviceAtmel(Interfaces *root, ID, int address)	throw(exception);
+				DeviceAtmel(Interfaces *root, ID, void *pdata)	throw(exception);
 		virtual	~DeviceAtmel()									throw();
 
-		string	name_short()							const	throw();
-		string	name_long()								const	throw();
+		string	name_short()									throw();
+		string	name_long()										throw();
+		string	device_id()										throw();
 
 	private:
 
@@ -31,7 +33,8 @@ class DeviceAtmel : public DeviceI2C
 			digital_input = 1,
 			analog_input,
 			digital_output,
-			pwm_output
+			pwm_output,
+			temp_sensor
 		};
 
 		int		model;
@@ -39,27 +42,23 @@ class DeviceAtmel : public DeviceI2C
 		int		version;
 		int		revision;
 
-		bool				probe()							throw();
-		void				find_controls()					throw();
-		Util::byte_array	getcontrol(int cmd)				throw(exception);
-		Util::byte_array	query(int cmd, int index, int length,
-				int param1 = -1, int param2 = -1,
-				int param3 = -1, int param4 = -1)			throw(exception);
+		double	read(Control *)								throw(exception);
+		void	write(Control *, double value)				throw(exception);
+		double	readwrite(Control *, double value)			throw(exception);
+		int		readcounter(Control *)						throw(exception);
+		int		readresetcounter(Control *)					throw(exception);
+		int		readpwmmode(Control *)						throw(exception);
+		void	writepwmmode(Control *, int value)			throw(exception);
+		string	readpwmmode_string(Control *)				throw(exception);
 
-		double	read(Control *)						throw(exception);
-		void	write(Control *, double value)		throw(exception);
-		double	readwrite(Control *, double value)	throw(exception);
-		int		readcounter(Control *)				throw(exception);
-		int		readresetcounter(Control *)			throw(exception);
-		int		readpwmmode(Control *)				throw(exception);
-		void	writepwmmode(Control *, int value)	throw(exception);
-		string	readpwmmode_string(Control *)		throw(exception);
+		static string name_short_static()					throw();
+		static string name_long_static()					throw();
 
-		Util::byte_array command(string cmd, int timeout = 200,
-				int chunks = 1)									throw(exception);
+		bool		probe()									throw();
+		void		find_controls()							throw(exception);
 
-		static string name_short_static()						throw();
-		static string name_long_static()						throw();
-
+		ByteArray	command(int expected_length, ByteArray)	throw(exception); 
+		ByteArray	command(int expected_length,
+				int a, int b = -1, int c = -1)				throw(exception); 
 };
 #endif
