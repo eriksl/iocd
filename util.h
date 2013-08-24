@@ -15,10 +15,10 @@ class ByteArray : public vector<uint8_t>
 {
 	public:
 
-		void	from_memory(size_t length, const uint8_t *data)	throw();
-		uint8_t	*to_memory(size_t *length) const throw();
-
-				operator string() const throw();
+		void	from_memory(size_t length, const uint8_t *data)			throw();
+		uint8_t	*to_memory(size_t *length)						const	throw();
+		string	to_hexstring(void)								const	throw();
+				operator string()								const	throw();
 };
 
 class Util

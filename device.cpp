@@ -72,6 +72,22 @@ ssize_t Device::write_data(const ByteArray &data, int timeout) throw(exception)
 	return(parent()->write_data(pdata, data, timeout));
 }
 
+ssize_t Device::write_data(int timeout, int a, int b, int c) throw(exception)
+{
+	ByteArray in;
+
+    if(a >= 0)
+        in.push_back((uint8_t)a);
+
+    if(b >= 0)
+        in.push_back((uint8_t)b);
+
+    if(c >= 0)
+        in.push_back((uint8_t)c);
+
+	return(parent()->write_data(pdata, in, timeout));
+}
+
 ssize_t Device::read_data(ByteArray &data, size_t length, int timeout) throw(exception)
 {
 	return(parent()->read_data(pdata, data, length, timeout));

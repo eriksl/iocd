@@ -23,6 +23,7 @@ class Interface
 	friend class Device;
 	friend class DeviceAtmel;
 	friend class DeviceK8055;
+	friend class DeviceTMP275;
 
 	public:
 
@@ -52,9 +53,9 @@ class Interface
 		virtual void	probe_all_devices()									throw(exception) = 0;
 		virtual	string	device_interface_desc(void *pdata)					throw() = 0;
 		virtual	ssize_t	write_data(void *device_private_data,
-						const ByteArray &data, int timeout)					throw() = 0;
+						const ByteArray &data, int timeout)					throw(exception) = 0;
 		virtual	ssize_t read_data(void *device_private_data,
-						ByteArray &data, size_t length, int timeout)		throw() = 0;
+						ByteArray &data, size_t length, int timeout)		throw(exception) = 0;
 		virtual void	release_device(
 						void **device_private_data)							throw() = 0;
 };

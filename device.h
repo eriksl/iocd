@@ -38,10 +38,11 @@ class Device
 				Controls 			controls;
 				Interfaces* const	root;
 
-				Interface*			parent()							throw(exception);
+				Interface*			parent()								throw(exception);
 
-		ssize_t	write_data(const ByteArray &data, int timeout)			throw(exception);
-		ssize_t read_data(ByteArray &data, size_t length, int timeout)	throw(exception);
+		ssize_t	write_data(const ByteArray &data, int timeout)				throw(exception);
+		ssize_t write_data(int timeout, int a = -1, int b = -1, int c = -1) throw(exception);
+		ssize_t read_data(ByteArray &data, size_t length, int timeout)		throw(exception);
 
 	private:
 

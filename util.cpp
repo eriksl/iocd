@@ -158,25 +158,22 @@ uint8_t *ByteArray::to_memory(size_t *length) const throw()
 	return(base);
 }
 
-ByteArray::operator string() const throw()
+string ByteArray::to_hexstring() const throw()
 {
 	string	rv;
-	vector<uint8_t>::const_iterator it;
-	ostringstream conv;
-
-	conv.str("");
-	conv << "[" << size() << "]";
-	rv = conv.str();
+	ByteArray::const_iterator it;
 
 	for(it = begin(); it != end(); it++)
 	{
-		//conv.str(" ");
-		//conv << setw(2) << setfill('0') << hex << *it;
-		//rv += conv.str();
-
-		rv += " ";
+		if(it != begin())
+			rv += " ";
 		rv += Util::hex_to_string(*it, 2);
 	}
 
 	return(rv);
+}
+
+ByteArray::operator string() const throw()
+{
+	return(string("[") + Util::int_to_string(size()) + "] " + to_hexstring());
 }

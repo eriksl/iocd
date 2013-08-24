@@ -1,3 +1,4 @@
+#include "interface.h"
 #include "device_tmp275.h"
 #include "control.h"
 #include "id.h"
@@ -6,12 +7,11 @@
 
 #include <unistd.h>
 
-DeviceTMP275::DeviceTMP275(Interfaces *root_in, ID id_in, int address_in) throw(exception)
-	:
-		DeviceI2C(root_in, id_in, address_in)
+DeviceTMP275::DeviceTMP275(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
+	:	Device(root_in, id_in, pdata_in)
 {
 	if(!probe())
-		throw(minor_exception(string("tmp275 not detected at ") + Util::int_to_string(address)));
+		throw(minor_exception(string("tmp275 not detected at ") + parent()->device_interface_desc(pdata)));
 }
 
 DeviceTMP275::~DeviceTMP275() throw()
@@ -28,28 +28,29 @@ string DeviceTMP275::name_long_static() throw()
 	return("TMP275 temperature sensor");
 }
 
-string DeviceTMP275::name_short() const throw()
+string DeviceTMP275::name_short() throw()
 {
-	return(name_short_static());
+	ostringstream rv;
+	rv << name_short_static() << "@" << parent()->device_interface_desc(pdata);
+	return(rv.str());
 }
 
-string DeviceTMP275::name_long() const throw()
+string DeviceTMP275::name_long() throw()
 {
-	return(name_long_static());
+	ostringstream rv;
+	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(pdata) << ")";
+	return(rv.str());
 }
 
 double DeviceTMP275::read(Control *) throw(exception)
 {
-	Util::byte_array	bytes;
-	int16_t				tmp;
+	ByteArray	bytes;
+	int16_t		tmp;
 
 	try
 	{
-		// read two bytes from temperature register
-		bytes = command("w 00 r 02");
-
-		if(bytes.size() != 2)
-			throw(minor_exception("invalid reply size from control"));
+		write_data(1000, 0x00);
+		read_data(bytes, 0x02, 1000);
 	}
 	catch(minor_exception error)
 	{
@@ -63,18 +64,16 @@ double DeviceTMP275::read(Control *) throw(exception)
 
 bool DeviceTMP275::probe() throw()
 {
-	stringstream		conv;
-	Util::byte_array	in;
+	stringstream	conv;
+	ByteArray		in;
 
 	try
 	{
 		// write 0xabcd in threshold register,
 		// check treshold register, it should return 0xabc0
-
-		in = command("w 02 ab cd r 02");
-
-		if(in.size() != 2)
-			throw(minor_exception("incorrect length in reply"));
+		
+		write_data(1000, 0x02, 0xab, 0xcd);
+		read_data(in, 0x02, 1000);
 
 		if((in[0] != 0xab) || (in[1] != 0xc0))
 			throw(minor_exception("incorrect reply from probe"));
@@ -86,10 +85,9 @@ bool DeviceTMP275::probe() throw()
 		// tm (thermostat mode) = 0 (comparator) (n/a)
 		// sd (shutdown) = no shutdown
  
-		in = command("w 01 60 r 01");
-
-		if(in.size() != 1)
-			throw(minor_exception("incorrect length in reply"));
+		in.clear();
+		write_data(100, 0x01, 0x60);
+		read_data(in, 0x01, 100);
 
 		if(in[0] != 0x60)
 			throw(minor_exception("incorrect reply from probe"));

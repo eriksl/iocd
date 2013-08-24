@@ -18,7 +18,6 @@ InterfaceUSBraw::InterfaceUSBraw(Interfaces *root_in, ID id_in) throw(exception)
 
 InterfaceUSBraw::~InterfaceUSBraw() throw()
 {
-	devices.clear();
 	lock();
 	libusb_exit(0);
 	unlock();
@@ -88,7 +87,8 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
 	DeviceT     				*device = 0;
     string      				error;
 
-	Util::dlog("DD InterfaceUSBraw::probe_single_device: %d/%d 0x%04x/0x%04x/0x%04x\n",
+	Util::dlog("DD InterfaceUSBraw::probe_single_device: %s:%d/%d:0x%04x/0x%04x/0x%04x\n",
+			DeviceT::name_short_static().c_str(),
 			write_endpoint, read_endpoint, match_vendor, match_product, match_version);
 
     try
@@ -187,7 +187,7 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
         devices.add(device);
         device->find_controls();
     }
-    catch(minor_exception e)
+    catch(iocd_exception e)
     {
 		if(device)
 		{

@@ -1,7 +1,7 @@
 #include "interface.h"
 #include "control.h"
 #include "interfaces.h"
-//#include "interface_elv.h"
+#include "interface_elv.h"
 #include "interface_usbraw.h"
 #include "device.h"
 #include "cppstreams.h"
@@ -131,7 +131,7 @@ void Interfaces::signal(Interfaces::signal_t value) throw()
 
 void Interfaces::probe_interfaces() throw()
 {
-	//probe_interface_1<InterfaceELV>("/dev/elv");
+	probe_interface_1<InterfaceELV>("/dev/elv");
 	probe_interface_0<InterfaceUSBraw>();
 }
 
@@ -189,7 +189,7 @@ template<class InterfaceT> void Interfaces::probe_interface_1(string device_node
 	{
 		Util::dlog("** probe for %s successful\n", interface->interface_id().c_str());
 		interfaces[id] = interface;
-		interface->find_devices();
+		interface->probe_all_devices();
 	}
 	else
 		Util::dlog("** probe %s at %s unsuccessful\n", InterfaceT::name_short_static().c_str(), device_node.c_str());

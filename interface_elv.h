@@ -13,34 +13,43 @@ class InterfaceELV : public Interface
 	public:
 
 		friend class Interfaces;
-		friend class DeviceI2C;
 
 				InterfaceELV(Interfaces *root, ID id, string device_node)	throw(exception);
 		virtual	~InterfaceELV()												throw();
 
-		static string name_short_static()	throw();
-		static string name_long_static()	throw();
+		static string name_short_static()									throw();
+		static string name_long_static()									throw();
 
-		string	name_short()										const	throw();
-		string	name_long()											const	throw();
-		string	interface_id()										const	throw();
+		string	name_short()												throw();
+		string	name_long()													throw();
+		string	interface_id()												throw();
 
 	private:
 
-		struct cmd_t
+		string	device_node;
+		int		fd;
+
+		struct if_usbelv_pdata_t
 		{
-			string	in;
-			string	out;
-			int		timeout;
-			int		chunks;
+			int	address;
 		};
 
-		string	device_node;
+		void	open(string path)											throw(exception);
+		void	write_raw(size_t length, const uint8_t *data, int timeout)	throw(exception);
+		void	read_raw(size_t *length, uint8_t *data, int timeout)		throw(exception);
 
-		void	open(string path)								throw(exception);
-		void	interface_command(void *)						throw(exception);
-		void	find_devices()									throw();
-		template<class DeviceT> void probe_device(int address)	throw();
+		template<class DeviceT> void probe_single_device(int address)		throw();
+
+		virtual	void	probe_all_devices()									throw();
+		virtual	string	device_interface_desc(void *device_private_data)	throw();
+		virtual	ssize_t	write_data(void *pdata,
+						const ByteArray &data, int timeout)					throw(exception);
+		virtual	ssize_t read_data(void *device_private_data,
+						ByteArray &data, size_t length, int timeout)		throw(exception);
+		virtual	void	release_device(
+						void **device_private_data)							throw();
+
+
 };
 
 #endif
