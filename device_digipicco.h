@@ -1,27 +1,27 @@
 #ifndef _device_digipicco_h_
 #define _device_digipicco_h_
 
-#include "device_i2c.h"
+#include "device.h"
 #include "id.h"
-#include "util.h"
 #include "exception.h"
+#include "util.h"
+#include "if_private_data.h"
 
 #include <string>
 using std::string;
 
 class Control;
+class Interfaces;
 
-class DeviceDigipicco : public DeviceI2C
+class DeviceDigipicco : public Device
 {
+	friend class InterfaceELV;
+
 	public:
 
-		friend class InterfaceELV;
-
-				DeviceDigipicco(Interfaces *root, ID, int address)	throw(exception);
-		virtual	~DeviceDigipicco()									throw();
-
-		string	name_short()						const	throw();
-		string	name_long()							const	throw();
+				DeviceDigipicco(Interfaces *root, ID, 
+						const InterfacePrivateData *)		throw(exception);
+		virtual	~DeviceDigipicco()							throw();
 
 	private:
 
@@ -31,12 +31,14 @@ class DeviceDigipicco : public DeviceI2C
 			humidity
 		};
 
-		double	read(Control *)										throw(exception);
-		bool	probe()												throw();
-		void	find_controls()										throw();
+		static string name_short_static()					throw();
+		static string name_long_static()					throw();
 
-		static string name_short_static()							throw();
-		static string name_long_static()							throw();
-	
+		string	name_short()								throw();
+		string	name_long()									throw();
+
+		double	read(Control *)								throw(exception);
+		bool	probe()										throw();
+		void	find_controls()								throw();
 };
 #endif

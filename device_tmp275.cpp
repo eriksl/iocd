@@ -7,11 +7,11 @@
 
 #include <unistd.h>
 
-DeviceTMP275::DeviceTMP275(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
+DeviceTMP275::DeviceTMP275(Interfaces *root_in, ID id_in, const InterfacePrivateData *pdata_in) throw(exception)
 	:	Device(root_in, id_in, pdata_in)
 {
 	if(!probe())
-		throw(minor_exception(string("tmp275 not detected at ") + parent()->device_interface_desc(pdata)));
+		throw(minor_exception(string("tmp275 not detected at ") + parent()->device_interface_desc(*private_data)));
 }
 
 DeviceTMP275::~DeviceTMP275() throw()
@@ -31,14 +31,14 @@ string DeviceTMP275::name_long_static() throw()
 string DeviceTMP275::name_short() throw()
 {
 	ostringstream rv;
-	rv << name_short_static() << "@" << parent()->device_interface_desc(pdata);
+	rv << name_short_static() << "@" << parent()->device_interface_desc(*private_data);
 	return(rv.str());
 }
 
 string DeviceTMP275::name_long() throw()
 {
 	ostringstream rv;
-	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(pdata) << ")";
+	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(*private_data) << ")";
 	return(rv.str());
 }
 

@@ -13,6 +13,7 @@ using std::string;
 #include "id.h"
 #include "exception.h"
 #include "util.h"
+#include "if_private_data.h"
 
 class Interfaces;
 
@@ -24,6 +25,8 @@ class Interface
 	friend class DeviceAtmel;
 	friend class DeviceK8055;
 	friend class DeviceTMP275;
+	friend class DeviceDigipicco;
+	friend class DeviceDS1731;
 
 	public:
 
@@ -32,11 +35,10 @@ class Interface
 						Interface(Interfaces *parent, ID id)	throw(exception);
 		virtual			~Interface()							throw();
 
-		Devices *		interface_devices()						throw();
-
-		virtual	string	name_short()							throw()	= 0;
-		virtual	string	name_long()								throw()	= 0;
-		virtual	string 	interface_id()							throw()	= 0;
+		Devices *		interface_devices()								throw();
+		virtual	string	name_short()							const	throw() = 0;
+		virtual	string	name_long()								const	throw() = 0;
+		virtual	string 	interface_id()							const	throw()	= 0;
 
 	protected:
 
@@ -51,12 +53,10 @@ class Interface
 				void	unlock()											throw(exception);
 
 		virtual void	probe_all_devices()									throw(exception) = 0;
-		virtual	string	device_interface_desc(void *pdata)					throw() = 0;
-		virtual	ssize_t	write_data(void *device_private_data,
+		virtual	string	device_interface_desc(const InterfacePrivateData &)	throw() = 0;
+		virtual	ssize_t	write_data(const InterfacePrivateData &,
 						const ByteArray &data, int timeout)					throw(exception) = 0;
-		virtual	ssize_t read_data(void *device_private_data,
+		virtual	ssize_t read_data(const InterfacePrivateData &,
 						ByteArray &data, size_t length, int timeout)		throw(exception) = 0;
-		virtual void	release_device(
-						void **device_private_data)							throw() = 0;
 };
 #endif

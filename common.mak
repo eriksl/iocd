@@ -1,8 +1,8 @@
 CWARNINGS		= -Wall -Wextra -Wshadow -Wundef -Wformat=2 -Winit-self -Wunused -Werror -Wpointer-arith -Wcast-qual -Wmultichar
-CPPWARNINGS		= 
+CPPWARNINGS		= $(CWARNINGS)
 
 CFLAGS			+= $(CWARNINGS)
-CPPFLAGS		+= $(CPPWARNINGS) -std=c++11 -fno-rtti
+CPPFLAGS		+= $(CPPWARNINGS) -std=c++11
 
 ifneq ($(DEBUG), on)
 CFLAGS			+= -O2
@@ -36,8 +36,9 @@ ifeq ($(TARGET), mipsel21)
 endif
 
 ifeq ($(TARGET), mipsel)
-	CC			=	/home/erik/src/openpli/build-vuultimo/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux/mipsel-oe-linux-gcc
-	CPP			=	/home/erik/src/openpli/build-vuultimo/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux/mipsel-oe-linux-g++
+	TOOLPATH	=	/nfs/src/openpli-4/build/tmp/sysroots/x86_64-linux/usr/bin/mips32el-oe-linux
+	CC			=	$(TOOLPATH)/mipsel-oe-linux-gcc
+	CPP			=	$(TOOLPATH)/mipsel-oe-linux-g++
 	CFLAGS		+= -DTARGET=mipsel -DTARGET_MIPSEL=1
 	CFLAGS		+= -I/home/erik/src/libmicrohttpd/mipsel30/usr/include
 	CFLAGS		+= -I/home/erik/src/libusb/mipsel30/usr/include

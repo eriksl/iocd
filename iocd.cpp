@@ -150,7 +150,7 @@ int main(int argc, char ** argv)
 			}
 
 			if(oneshot)
-				exit(0);
+				throw(oneshot_exception());
 
 			if(interfaces.count() < interfaces_required)
 			{
@@ -195,6 +195,11 @@ int main(int argc, char ** argv)
 		catch(fatal_exception e)
 		{
 			log_exception("fatal", e.message);
+			break;
+		}
+		catch(oneshot_exception e)
+		{
+			Util::vlog("done\n");
 			break;
 		}
 		catch(exception e)

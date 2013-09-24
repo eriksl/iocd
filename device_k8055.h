@@ -18,15 +18,16 @@ class DeviceK8055 : public Device
 {
 	public:
 
-		friend class InterfaceUSBraw;
+				DeviceK8055(Interfaces *root, ID, const InterfacePrivateData *)	throw(exception);
+		virtual	~DeviceK8055()													throw();
 
-				DeviceK8055(Interfaces *root, ID, void *pdata)	throw(exception);
-		virtual	~DeviceK8055()									throw();
-
-		string	name_short()									throw();
-		string	name_long()										throw();
+		string	name_short()	throw();
+		string	name_long()		throw();
 
 	private:
+
+		friend class InterfaceUSBraw;
+		friend class InterfaceELV;
 
 		enum
 		{

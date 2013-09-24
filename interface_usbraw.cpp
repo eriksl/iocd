@@ -5,6 +5,43 @@
 #include "cppstreams.h"
 #include "util.h"
 
+#include <typeinfo>
+using std::bad_cast;
+
+InterfaceUSBrawPrivateData::InterfaceUSBrawPrivateData() throw()
+{
+}
+
+InterfaceUSBrawPrivateData::~InterfaceUSBrawPrivateData() throw()
+{
+	if(device)
+	{
+		//lock(); // FIXME
+		libusb_unref_device(device);
+		device = 0;
+		//unlock(); // FIXME
+	}
+
+	Util::dlog("&& if_usbrawdata destructor\n");
+
+	if(descriptor)
+	{
+		Util::dlog("&& if_usbrawdata destructor delete descriptor\n");
+		delete descriptor;
+		descriptor = 0;
+	}
+
+	if(handle)
+	{
+		//lock(); FIXME
+		libusb_release_interface(handle, 0);
+		libusb_attach_kernel_driver(handle, 0);
+		libusb_close(handle);
+		handle = 0;
+		//unlock(); FIXME
+	}
+}
+
 InterfaceUSBraw::InterfaceUSBraw(Interfaces *root_in, ID id_in) throw(exception)
 	:	Interface(root_in, id_in)
 {
@@ -18,50 +55,50 @@ InterfaceUSBraw::InterfaceUSBraw(Interfaces *root_in, ID id_in) throw(exception)
 
 InterfaceUSBraw::~InterfaceUSBraw() throw()
 {
+	devices.clear();
 	lock();
 	libusb_exit(0);
 	unlock();
 }
 
-string InterfaceUSBraw::name_short_static() throw()
+string InterfaceUSBraw::name_short() const throw()
 {
 	return("usbraw");
 }
 
-string InterfaceUSBraw::name_long_static() throw()
+string InterfaceUSBraw::name_long() const throw()
 {
 	return("USB raw interface");
 }
 
-string InterfaceUSBraw::device_interface_desc(void *pdata_void) throw()
+string InterfaceUSBraw::device_interface_desc(const InterfacePrivateData &pd) throw()
 {
 	ostringstream rv;
-	if_usbraw_pdata_t *pdata = (if_usbraw_pdata_t *)pdata_void;
 	int bus, address;
 
-	if(!pdata)
-		return("<unknown>");
+	try
+	{
+		const InterfaceUSBrawPrivateData &urpd = dynamic_cast<const InterfaceUSBrawPrivateData &>(pd);
+		lock();
+		bus		= libusb_get_bus_number(urpd.device);
+		address = libusb_get_device_address(urpd.device);
+		unlock();
+    	rv << bus << ":" << address;
+    	return(rv.str());
+	}
+	catch(bad_cast)
+	{
+		Util::dlog("if_usbraw::device_interface_desc: pd == null\n");
+	}
+	catch(...)
+	{
+		Util::dlog("if_usbraw::device_interface_desc: unknown exception\n");
+	}
 
-	lock();
-	bus		= libusb_get_bus_number(pdata->device);
-	address = libusb_get_device_address(pdata->device);
-	unlock();
-    rv << bus << ":" << address;
-
-    return(rv.str());
+	return("<unknown>");
 }
 
-string InterfaceUSBraw::name_short() throw()
-{
-	return(name_short_static());
-}
-
-string InterfaceUSBraw::name_long() throw()
-{
-	return(name_long_static());
-}
-
-string InterfaceUSBraw::interface_id() throw()
+string InterfaceUSBraw::interface_id() const throw()
 {
 	return(name_short());
 }
@@ -83,9 +120,9 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
 	libusb_device				*usbdev;
 	libusb_device_descriptor	*descriptor = 0;
 	libusb_device_handle		*handle = 0;
-	if_usbraw_pdata_t			*pdata = 0;
 	DeviceT     				*device = 0;
     string      				error;
+	InterfaceUSBrawPrivateData	*urpd = 0;
 
 	Util::dlog("DD InterfaceUSBraw::probe_single_device: %s:%d/%d:0x%04x/0x%04x/0x%04x\n",
 			DeviceT::name_short_static().c_str(),
@@ -132,24 +169,23 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
 		libusb_ref_device(usbdev);
 		unlock();
 
-		pdata = new if_usbraw_pdata_t;
-		pdata->device			= usbdev;
-		pdata->descriptor		= descriptor;
-		pdata->handle			= 0;
-		pdata->write_endpoint	= write_endpoint;
-		pdata->read_endpoint	= read_endpoint;
+		urpd = new InterfaceUSBrawPrivateData;
+		urpd->device			= usbdev;
+		urpd->descriptor		= descriptor;
+		urpd->handle			= 0;
+		urpd->write_endpoint	= write_endpoint;
+		urpd->read_endpoint		= read_endpoint;
+
+		descriptor = 0;	// avoid pointer aliasing
 
 		lock();
-		rv = libusb_open(pdata->device, &handle);
+		rv = libusb_open(urpd->device, &handle);
 		unlock();
 
 		if(rv < 0)
-		{
-			release_device((void **)&pdata);
 			throw(minor_exception(string("if_usbraw: libusb_open: ") + Util::usb_error_string(rv)));
-		}
 
-		pdata->handle = handle;
+		urpd->handle = handle;
 
 		lock();
 		rv = libusb_detach_kernel_driver(handle, 0);
@@ -166,22 +202,16 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
 		unlock();
 
 		if(rv != 0)
-		{
-			release_device((void **)&pdata);
 			throw(minor_exception(string("if_usbraw: libusb_set_configuration: ") + Util::usb_error_string(rv)));
-		}
 
 		lock();
 		rv = libusb_claim_interface(handle, 0);
 		unlock();
 
 		if(rv != 0)
-		{
-			release_device((void **)&pdata);
 			throw(minor_exception(string("if_usbraw: libusb_claim_interface: ") + Util::usb_error_string(rv)));
-		}
 
-        device = new DeviceT(root, ID(id.interface, enumerator++), pdata);
+        device = new DeviceT(root, ID(id.interface, enumerator++), urpd);
 
         Util::vlog("II if_usbraw: probe for %s successful\n", device->name_short().c_str());
         devices.add(device);
@@ -189,6 +219,8 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
     }
     catch(iocd_exception e)
     {
+		Util::dlog("if_usbraw::probe: catch %s\n", e.message.c_str());
+
 		if(device)
 		{
 			delete device;
@@ -198,6 +230,8 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
     }
     catch(...)
     {
+		Util::dlog("if_usbraw::probe: catch ...\n");
+
 		if(device)
 		{
 			delete device;
@@ -215,133 +249,135 @@ template<class DeviceT> void InterfaceUSBraw::probe_single_device(
 	}
 
 	if(!device)
+	{
+		delete descriptor;
 		Util::vlog("II if_usbraw: probe for %s@%04x:%04x unsuccessful: %s\n", DeviceT::name_short_static().c_str(), match_product, match_vendor, error.c_str());
+	}
 }
 
-void InterfaceUSBraw::release_device(void **pdata_void) throw()
+ssize_t InterfaceUSBraw::write_data(const InterfacePrivateData &pd, const ByteArray &byte_array, int timeout) throw()
 {
-	if_usbraw_pdata_t **pdata;
-
-	pdata = (if_usbraw_pdata_t **)pdata_void;
-
-	if(!pdata || !*pdata)
-		return;
-
-	if((**pdata).device)
-	{
-		lock();
-		libusb_unref_device((**pdata).device);
-		unlock();
-		(**pdata).device = 0;
-	}
-
-	if((**pdata).descriptor)
-	{
-		delete (**pdata).descriptor;
-		(**pdata).descriptor = 0;
-	}
-
-	if((**pdata).handle)
-	{
-		lock();
-		libusb_release_interface((**pdata).handle, 0);
-		libusb_attach_kernel_driver((**pdata).handle, 0);
-		libusb_close((**pdata).handle);
-		unlock();
-		(**pdata).handle = 0;
-	}
-
-	delete *pdata;
-	*pdata = 0;
-}
-
-ssize_t InterfaceUSBraw::write_data(void *pdata_void, const ByteArray &byte_array, int timeout) throw()
-{
-	uint8_t	*data;
+	uint8_t	*data = 0;
 	size_t	length;
-	int		transferred;
+	int		transferred = 0;
 	ssize_t	rv;
 
-	if_usbraw_pdata_t *pdata = (if_usbraw_pdata_t *)pdata_void;
-
-	Util::dlog("DD if_usbraw: write_data, write_endpoint = %02x\n", pdata->write_endpoint);
-
-	data = byte_array.to_memory(&length);
-
-	lock();
-
-	if(pdata->write_endpoint == 0)
+	try
 	{
-		rv = libusb_control_transfer(pdata->handle,
-			LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_ENDPOINT,
-			0, 0, 0, 
-			data, length, timeout);
+		const InterfaceUSBrawPrivateData &urpd = dynamic_cast<const InterfaceUSBrawPrivateData &>(pd);
 
-		transferred = length;
+		Util::dlog("DD if_usbraw: write_data, write_endpoint = %02x\n", urpd.write_endpoint);
+
+		data = byte_array.to_memory(&length);
+
+		lock();
+
+		if(urpd.write_endpoint == 0)
+		{
+			rv = libusb_control_transfer(urpd.handle,
+				LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_ENDPOINT,
+				0, 0, 0, 
+				data, length, timeout);
+
+			transferred = length;
+		}
+		else
+		{
+			rv = libusb_interrupt_transfer(urpd.handle,
+				urpd.write_endpoint, data, length, &transferred, timeout);
+		}
+
+		unlock();
+
+		if((rv < 0) || (transferred != (int)length))
+		{
+			Util::vlog("II if_usbraw.write_data: %s\n", Util::usb_error_string(rv).c_str());
+			transferred = 0;
+		}
 	}
-	else
+	catch(bad_cast)
 	{
-		transferred = 0;
-
-		rv = libusb_interrupt_transfer(pdata->handle,
-			pdata->write_endpoint, data, length, &transferred, timeout);
+		Util::dlog("if_usbraw::write_data: pd == null\n");
 	}
-
-	unlock();
-
-	if((rv < 0) || (transferred != (int)length))
+	catch(...)
 	{
-		Util::vlog("II if_usbraw.write_data: %s\n", Util::usb_error_string(rv).c_str());
-		transferred = 0;
+		Util::dlog("if_usbraw::write_data: unknown exception\n");
 	}
 
 	delete [] data;
-
 	return(transferred);
 }
 
-ssize_t InterfaceUSBraw::read_data(void *pdata_void, ByteArray &byte_array, size_t length, int timeout) throw()
+ssize_t InterfaceUSBraw::read_data(const InterfacePrivateData &pd, ByteArray &byte_array, size_t length_in, int timeout) throw()
 {
-	uint8_t	*data = new uint8_t[length];
+	uint8_t	*data;
 	ssize_t rv;
-	int transferred;
+	int transferred = 0;
+	size_t length;
 
-	if_usbraw_pdata_t *pdata = (if_usbraw_pdata_t *)pdata_void;
-
-	Util::dlog("DD if_usbraw: read_data, read_endpoint = %02x\n", pdata->read_endpoint);
-
-	lock();
-
-	if(pdata->read_endpoint == 0)
-	{
-		rv = libusb_control_transfer(pdata->handle,
-			LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_ENDPOINT,
-			0, 0, 0,
-			data, length, timeout);
-
-		transferred = rv;
-	}
+	if(length_in == 0) // unknown length
+		length = 254;
 	else
+		length = length_in;
+
+	data = new uint8_t[length];
+
+	try
 	{
-		transferred = 0;
+		const InterfaceUSBrawPrivateData &urpd = dynamic_cast<const InterfaceUSBrawPrivateData &>(pd);
 
-		rv = libusb_interrupt_transfer(pdata->handle,
-			pdata->read_endpoint, data, length, &transferred, timeout);
+		Util::dlog("DD if_usbraw: read_data, read_endpoint = %02x\n", urpd.read_endpoint);
+
+		lock();
+
+		if(urpd.read_endpoint == 0)
+		{
+			rv = libusb_control_transfer(urpd.handle,
+				LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_ENDPOINT,
+				0, 0, 0,
+				data, length, timeout);
+	
+			transferred = rv;
+		}
+		else
+		{
+			rv = libusb_interrupt_transfer(urpd.handle,
+				urpd.read_endpoint, data, length, &transferred, timeout);
+		}
+
+		unlock();
+
+		Util::dlog("DD if_usbraw.read_data: length = %d, read %d bytes\n", length, transferred);
+
+		if(rv < 0)
+		{
+			Util::vlog("II if_usbraw.read_data: %s\n", Util::usb_error_string(rv).c_str());
+			transferred = 0;
+		}
+
+		if((length_in == 0) && (transferred > 0) && (data[0] > 0))
+		{
+			Util::dlog("DD if_usbraw.read_data: zero length requested, data[0] = %d\n", data[0]);
+			transferred = data[0];
+			byte_array.from_memory(transferred, data + 1);
+			Util::dlog("DD if_usbraw.read_data: zero length requested, transferred = %d\n", transferred);
+		}
+		else
+		{
+			byte_array.from_memory(transferred, data);
+			Util::dlog("DD if_usbraw.read_data: nonzero length requested, transferred = %d\n", transferred);
+		}
+
 	}
-
-	unlock();
-
-	Util::dlog("DD if_usbraw.read_data: length = %d, read %d bytes\n", length, transferred);
-
-	if(rv < 0)
+	catch(bad_cast)
 	{
-		Util::vlog("II if_usbraw.read_data: %s\n", Util::usb_error_string(rv).c_str());
-		transferred = 0;
+		Util::dlog("if_usbraw::read_data: pd == null\n");
 	}
-
-	byte_array.from_memory(transferred, data);
+	catch(...)
+	{
+		Util::dlog("if_usbraw::read_data: unknown exception\n");
+	}
 
 	delete [] data;
-
 	return(transferred);
 }

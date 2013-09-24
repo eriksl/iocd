@@ -46,6 +46,7 @@ int Util::parse_bytes(string str, ByteArray & values) throw()
 	stringstream	conv;
 	int				byte;
 
+	values.clear();
 	conv.str(str);
 
 	for(;;)

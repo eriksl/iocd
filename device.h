@@ -1,6 +1,7 @@
 #ifndef _device_h_
 #define _device_h_
 
+#include "if_private_data.h"
 #include "id.h"
 #include "controls.h"
 #include "exception.h"
@@ -22,7 +23,8 @@ class Device
 
 		const	ID	id;
 
-				Device(Interfaces *root, ID id, void *pdata)	throw(exception);
+				Device(Interfaces *root, ID id,
+						const InterfacePrivateData *)			throw();
 		virtual	~Device()										throw();
 
 		virtual void	find_controls()							throw(exception)	= 0;
@@ -33,12 +35,12 @@ class Device
 
 	protected:
 
-				void 				*pdata;
+		const	InterfacePrivateData	*private_data;
 
-				Controls 			controls;
-				Interfaces* const	root;
+				Controls 				controls;
+				Interfaces* const		root;
 
-				Interface*			parent()								throw(exception);
+				Interface				*parent()				throw(exception);
 
 		ssize_t	write_data(const ByteArray &data, int timeout)				throw(exception);
 		ssize_t write_data(int timeout, int a = -1, int b = -1, int c = -1) throw(exception);

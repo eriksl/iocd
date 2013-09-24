@@ -37,4 +37,11 @@ class fatal_exception : public iocd_exception
 		fatal_exception(string msg) throw() : iocd_exception(msg) {}
 };
 
+class oneshot_exception : public iocd_exception
+{
+	public:
+
+		oneshot_exception() throw() : iocd_exception("") {}
+};
+
 #endif

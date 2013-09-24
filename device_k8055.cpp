@@ -7,11 +7,11 @@
 #include <string.h>
 #include <stddef.h>
 
-DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
-		: Device(root_in, id_in, pdata_in)
+DeviceK8055::DeviceK8055(Interfaces *root_in, ID id_in, const InterfacePrivateData *private_data_in) throw(exception)
+		: Device(root_in, id_in, private_data_in)
 {
 	if(!probe())
-		throw(minor_exception(string("no k8055 device found at ") + parent()->device_interface_desc(pdata)));
+		throw(minor_exception(string("no k8055 device found at ") + parent()->device_interface_desc(*private_data)));
 
 	analog_outputs[0] = analog_outputs[1] = 0;
 	digital_outputs = 0;
@@ -34,14 +34,14 @@ string DeviceK8055::name_long_static() throw()
 string DeviceK8055::name_short() throw()
 {
 	ostringstream rv;
-	rv << name_short_static() << "@" << parent()->device_interface_desc(pdata);
+	rv << name_short_static() << "@" << parent()->device_interface_desc(*private_data);
     return(rv.str());
 }
 
 string DeviceK8055::name_long() throw()
 {
 	ostringstream rv;
-	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(pdata) << ")";
+	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(*private_data) << ")";
     return(rv.str());
 }
 

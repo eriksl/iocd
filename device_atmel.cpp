@@ -4,11 +4,11 @@
 #include "util.h"
 #include "interface.h"
 
-DeviceAtmel::DeviceAtmel(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
+DeviceAtmel::DeviceAtmel(Interfaces *root_in, ID id_in, const InterfacePrivateData *pdata_in) throw(exception)
 	: Device(root_in, id_in, pdata_in)
 {
 	if(!probe())
-		throw(minor_exception(string("no atmel device found at ") + parent()->device_interface_desc(pdata)));
+		throw(minor_exception(string("no atmel device found at ") + parent()->device_interface_desc(*private_data)));
 }
 
 DeviceAtmel::~DeviceAtmel() throw()
@@ -28,14 +28,14 @@ string DeviceAtmel::name_long_static() throw()
 string DeviceAtmel::name_short() throw()
 {
 	ostringstream rv;
-	rv << name_short_static() << "@" << parent()->device_interface_desc(pdata);
+	rv << name_short_static() << "@" << parent()->device_interface_desc(*private_data);
     return(rv.str());
 }
 
 string DeviceAtmel::name_long() throw()
 {
 	ostringstream rv;
-	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(pdata) << ")";
+	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(*private_data) << ")";
     return(rv.str());
 }
 
@@ -53,8 +53,19 @@ double DeviceAtmel::read(Control *control) throw(exception)
 
 		case(DeviceAtmel::analog_input):
 		{
-			bytes = command(2, 0xc0 | control->index);
-			return(double((bytes[0] << 8) | (bytes[1])));
+			try
+			{
+				Util::dlog("DD device_atmel::read: trying new style adc\n");
+				bytes = command(2, 0xc0 | control->index);
+				return(double((bytes[0] << 8) | (bytes[1])));
+			}
+			catch(iocd_exception e)
+			{
+				Util::dlog("DD device_atmel::read: trying old style adc, exception: %s\n", e.message.c_str());
+				command(0, 0xc0 | control->index);
+				bytes = command(2, 0x01);
+				return(double((bytes[0] << 8) | (bytes[1])));
+			}
 		}
 
 		case(DeviceAtmel::digital_output):
@@ -253,6 +264,8 @@ bool DeviceAtmel::probe() throw()
 	ByteArray		in;
 	int				ix;
 
+	Util::dlog("DD device_atmel::probe\n");
+
 	try
 	{
 		// 0x00: request identification
@@ -327,7 +340,7 @@ void DeviceAtmel::find_controls() throw(exception)
 				controls.add(control);
 		}
 	}
-	catch(minor_exception e)
+	catch(iocd_exception e)
 	{
 		Util::vlog("II atmel: add digital input: %s\n", e.message.c_str());
 	}
@@ -357,7 +370,7 @@ void DeviceAtmel::find_controls() throw(exception)
 				controls.add(control);
 		}
 	}
-	catch(minor_exception e)
+	catch(iocd_exception e)
 	{
 		Util::vlog("II atmel: analog input: %s\n", e.message.c_str());
 	}
@@ -392,7 +405,7 @@ void DeviceAtmel::find_controls() throw(exception)
 				controls.add(control);
 		}
 	}
-	catch(minor_exception e)
+	catch(iocd_exception e)
 	{
 		Util::vlog("II atmel: add digital output: %s\n", e.message.c_str());
 	}
@@ -427,7 +440,7 @@ void DeviceAtmel::find_controls() throw(exception)
 				controls.add(control);
 		}
 	}
-	catch(minor_exception e)
+	catch(iocd_exception e)
 	{
 		Util::vlog("II atmel: add pwm output: %s\n", e.message.c_str());
 	}
@@ -458,9 +471,9 @@ void DeviceAtmel::find_controls() throw(exception)
 				controls.add(control);
 		}
 	}
-	catch(minor_exception e)
+	catch(iocd_exception e)
 	{
-		Util::vlog("II atmel: add pwm output: %s\n", e.message.c_str());
+		Util::vlog("II atmel: add temperature sensor: %s\n", e.message.c_str());
 	}
 }
 
@@ -492,34 +505,28 @@ ByteArray DeviceAtmel::command(int expected_length, ByteArray in) throw(exceptio
 	if(write_data(in, 1000) != (ssize_t)in.size())
 		throw(major_exception(string("DeviceAtmel::command: failed to write to device")));
 
-	length = read_data(out, 254, 1000);
+	length = read_data(out, 0, 1000);
 
-	if(length < 4)
-		throw(major_exception(string("DeviceAtmel::command: reply < 4 bytes: ") + Util::int_to_string(length)));
+	if(length < 3)
+		throw(major_exception(string("DeviceAtmel::command: reply < 3 bytes: ") + Util::int_to_string(length)));
 
-	if((out[0] + 1) != (uint8_t)length)
-		throw(major_exception(string("DeviceAtmel::command: invalid reply length, expected: ") +
-					Util::int_to_string(expected_length) + ", received: " + Util::int_to_string(out[0] + 1)));
+	if((expected_length > 0) && ((length - 3) != size_t(expected_length)))
+		throw(major_exception(string("DeviceAtmel::command: length != expected_length: ") + Util::int_to_string(length - 3) + "/" + Util::int_to_string(expected_length)));
 
-	if((expected_length > 0) && ((size_t)(expected_length) != (length - 4)))
-		throw(major_exception(string("DeviceAtmel::command: unexpected reply length, expected: ") +
-					Util::int_to_string(expected_length) + ", received: " + Util::int_to_string(length - 4)));
+	if(out[0] != 0x00)
+		throw(major_exception(string("DeviceAtmel::command: error from device:") + Util::int_to_string(out[0])));
 
-	if(out[1] != 0x00)
-		throw(major_exception(string("DeviceAtmel::command: error from device:") + Util::int_to_string(out[1])));
-
-	if(out[2] != in[0])
+	if(out[1] != in[0])
 		throw(major_exception(string("DeviceAtmel::command: reply on invalid command: ") + Util::int_to_string(in[0]) + "/" + Util::int_to_string(in[2])));
 
 	checksum = 0;
 
-	for(ix = 1; ix < ((int)length - 1); ix++)
+	for(ix = 0; ix < ((int)length - 1); ix++)
 		checksum = (checksum + out[ix]) & 0xff;
 
 	if(out[length - 1] != checksum)
 		throw(major_exception(string("DeviceAtmel::command: invalid checksum: ") + Util::int_to_string(out[length - 1]) + "/" + Util::int_to_string(checksum)));
 
-	out.erase(out.begin());	//	length
 	out.erase(out.begin());	//	error code
 	out.erase(out.begin());	//	related command
 	out.pop_back();			//	checksum;

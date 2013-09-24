@@ -2,10 +2,10 @@
 #include "interface.h"
 #include "device.h"
 
-Device::Device(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
+Device::Device(Interfaces *root_in, ID id_in, const InterfacePrivateData *private_data_in) throw()
 	:
 		id(id_in),
-		pdata(pdata_in),
+		private_data(private_data_in),
 		controls(),
 		root(root_in)
 {
@@ -13,8 +13,8 @@ Device::Device(Interfaces *root_in, ID id_in, void *pdata_in) throw(exception)
 
 Device::~Device() throw()
 {
-	if(pdata)
-		parent()->release_device(&pdata);
+	Util::dlog("DD device: delete private data\n");
+	delete private_data;
 }
 
 double Device::read(Control *) throw(exception)
@@ -67,11 +67,6 @@ Controls* Device::device_controls() throw()
 	return(&controls);
 }
 
-ssize_t Device::write_data(const ByteArray &data, int timeout) throw(exception)
-{
-	return(parent()->write_data(pdata, data, timeout));
-}
-
 ssize_t Device::write_data(int timeout, int a, int b, int c) throw(exception)
 {
 	ByteArray in;
@@ -85,10 +80,15 @@ ssize_t Device::write_data(int timeout, int a, int b, int c) throw(exception)
     if(c >= 0)
         in.push_back((uint8_t)c);
 
-	return(parent()->write_data(pdata, in, timeout));
+	return(parent()->write_data(*private_data, in, timeout));
+}
+
+ssize_t Device::write_data(const ByteArray &data, int timeout) throw(exception)
+{
+	return(parent()->write_data(*private_data, data, timeout));
 }
 
 ssize_t Device::read_data(ByteArray &data, size_t length, int timeout) throw(exception)
 {
-	return(parent()->read_data(pdata, data, length, timeout));
+	return(parent()->read_data(*private_data, data, length, timeout));
 }

@@ -15,7 +15,6 @@ Interface::Interface(Interfaces *root_in, ID id_in) throw(exception)
 
 Interface::~Interface() throw()
 {
-	devices.clear();
 	pthread_mutex_destroy(&mutex);
 }
 

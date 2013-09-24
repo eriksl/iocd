@@ -5,6 +5,7 @@
 #include "id.h"
 #include "exception.h"
 #include "util.h"
+#include "if_private_data.h"
 
 #include <string>
 using std::string;
@@ -16,10 +17,12 @@ class DeviceAtmel : public Device
 {
 	friend class Interface;
 	friend class InterfaceUSBraw;
+	friend class InterfaceELV;
 
 	public:
 
-				DeviceAtmel(Interfaces *root, ID, void *pdata)	throw(exception);
+				DeviceAtmel(Interfaces *root, ID,
+								const InterfacePrivateData *)	throw(exception);
 		virtual	~DeviceAtmel()									throw();
 
 		string	name_short()									throw();

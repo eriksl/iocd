@@ -131,11 +131,11 @@ void Interfaces::signal(Interfaces::signal_t value) throw()
 
 void Interfaces::probe_interfaces() throw()
 {
-	probe_interface_1<InterfaceELV>("/dev/elv");
-	probe_interface_0<InterfaceUSBraw>();
+	probe_interface_1<InterfaceELV>("elv@/dev/elv", "/dev/elv");
+	probe_interface_0<InterfaceUSBraw>("usbraw");
 }
 
-template<class InterfaceT> void Interfaces::probe_interface_0() throw()
+template<class InterfaceT> void Interfaces::probe_interface_0(string ifname) throw()
 {
 	InterfaceT *interface = 0;
 	ID			id(enumerator++);
@@ -143,7 +143,7 @@ template<class InterfaceT> void Interfaces::probe_interface_0() throw()
 
 	try
 	{
-		Util::dlog("** probing for %s\n", InterfaceT::name_short_static().c_str());
+		Util::dlog("** probing for %s\n", ifname.c_str());
 		interface = new InterfaceT(this, id); 
 	}
 	catch(minor_exception e)
@@ -162,10 +162,10 @@ template<class InterfaceT> void Interfaces::probe_interface_0() throw()
 		interface->probe_all_devices();
 	}
 	else
-		Util::dlog("** probe for %s unsuccessful\n", InterfaceT::name_short_static().c_str());
+		Util::dlog("** probe for %s unsuccessful\n", ifname.c_str());
 }
 
-template<class InterfaceT> void Interfaces::probe_interface_1(string device_node) throw()
+template<class InterfaceT> void Interfaces::probe_interface_1(string ifname, string device_node) throw()
 {
 	InterfaceT *interface = 0;
 	ID			id(enumerator++);
@@ -173,7 +173,7 @@ template<class InterfaceT> void Interfaces::probe_interface_1(string device_node
 
 	try
 	{
-		Util::dlog("** probing for %s:%s\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
+		Util::dlog("** probing for %s:%s\n", ifname.c_str(), device_node.c_str());
 		interface = new InterfaceT(this, id, device_node); 
 	}
 	catch(minor_exception e)
@@ -192,7 +192,7 @@ template<class InterfaceT> void Interfaces::probe_interface_1(string device_node
 		interface->probe_all_devices();
 	}
 	else
-		Util::dlog("** probe %s at %s unsuccessful\n", InterfaceT::name_short_static().c_str(), device_node.c_str());
+		Util::dlog("** probe %s at %s unsuccessful\n", ifname.c_str(), device_node.c_str());
 }
 
 void Interfaces::sigint(int)
