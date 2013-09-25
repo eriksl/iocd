@@ -73,7 +73,9 @@ bool DeviceTMP275::probe() throw()
 		// check treshold register, it should return 0xabc0
 		
 		write_data(1000, 0x02, 0xab, 0xcd);
-		read_data(in, 0x02, 1000);
+
+		if(read_data(in, 0x02, 1000) != 2)
+			throw(minor_exception("incorrect length from probe"));
 
 		if((in[0] != 0xab) || (in[1] != 0xc0))
 			throw(minor_exception("incorrect reply from probe"));
@@ -114,7 +116,7 @@ void DeviceTMP275::find_controls() throw()
 		cc.set(Control::cap_canread);
 
 		control = new Control(root, ID(id.interface, id.device, 1, 1),
-				-40, 125, "˙C", 2, cc, 0, 0, "temp", "Temperature");
+				-40, 125, "˙C", 2, cc, 0, 0, "temp", "temperature sensor");
 	}
 	catch(minor_exception e)
 	{

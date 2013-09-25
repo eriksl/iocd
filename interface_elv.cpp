@@ -2,8 +2,9 @@
 #include "device_tmp275.h"
 #include "device_atmel.h"
 #include "device_digipicco.h"
-//#include "device_tsl2550.h"
+#include "device_tsl2550.h"
 #include "device_ds1731.h"
+#include "device_ds1621.h"
 #include "devices.h"
 #include "cppstreams.h"
 #include "util.h"
@@ -145,6 +146,7 @@ void InterfaceELV::open(string open_device) throw(exception)
 	try
 	{
 		static const uint8_t *resetstring = (const uint8_t *)":z 4b\n";
+		static const uint8_t *setstring   = (const uint8_t *)"y30\n";
 
 		write_raw(strlen((const char *)resetstring), resetstring, 2000);
 
@@ -157,6 +159,8 @@ void InterfaceELV::open(string open_device) throw(exception)
 		read_raw(&length, buffer - 1, 3000);
 		buffer[length] = '\0';
 		rv += (const char *)buffer;
+
+		write_raw(strlen((const char *)setstring), setstring, 100);
 	}
 	catch(minor_exception e)
 	{
@@ -183,10 +187,11 @@ void InterfaceELV::probe_all_devices() throw()
 {
 	probe_single_device<DeviceAtmel>(0x02);
 	probe_single_device<DeviceAtmel>(0x03);
-	probe_single_device<DeviceTMP275>(0x49);
-	probe_single_device<DeviceDigipicco>(0x78);
+	probe_single_device<DeviceTSL2550>(0x39);
 	probe_single_device<DeviceDS1731>(0x48);
-	//probe_single_device<DeviceTSL2550>(0x39); // FIXME
+	probe_single_device<DeviceTMP275>(0x49);
+	probe_single_device<DeviceDS1621>(0x4b);
+	probe_single_device<DeviceDigipicco>(0x78);
 }
 
 template<class DeviceT> void InterfaceELV::probe_single_device(int address) throw()

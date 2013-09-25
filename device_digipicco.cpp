@@ -140,7 +140,7 @@ void DeviceDigipicco::find_controls() throw()
 	{
 		control_temp = new Control(root, ID(id.interface, id.device, int(DeviceDigipicco::temperature), 1),
 					-25, 85, "˙C", 2, cc, DeviceDigipicco::temperature, 0,
-					"temp", "Temperature sensor");
+					"temp", "temperature sensor");
 
 		control_hum = new Control(root, ID(id.interface, id.device, int(DeviceDigipicco::humidity), 1), 
 					0, 100, "%", 0, cc, DeviceDigipicco::humidity, 0,

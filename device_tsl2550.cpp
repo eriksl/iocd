@@ -6,12 +6,12 @@
 #include <unistd.h>
 #include <math.h>
 
-DeviceTSL2550::DeviceTSL2550(Interfaces *root_in, ID id_in, int address_in) throw(exception)
+DeviceTSL2550::DeviceTSL2550(Interfaces *root_in, ID id_in, InterfacePrivateData *pd_in) throw(exception)
 	:
-		DeviceI2C(root_in, id_in, address_in)
+		Device(root_in, id_in, pd_in)
 {
 	if(!probe())
-		throw(minor_exception(string("no tsl2550 device found at 0x") + Util::int_to_string(address)));
+		throw(minor_exception(string("tsl25500 not detected at ") + parent()->device_interface_desc(*private_data)));
 }
 
 DeviceTSL2550::~DeviceTSL2550() throw()
@@ -28,32 +28,37 @@ string DeviceTSL2550::name_long_static() throw()
 	return("TSL2550 light sensor");
 }
 
-string DeviceTSL2550::name_short() const throw()
+string DeviceTSL2550::name_short() throw()
 {
-	return(name_short_static());
+	ostringstream rv;
+	rv << name_short_static() << "@" << parent()->device_interface_desc(*private_data);
+	return(rv.str());
 }
 
-string DeviceTSL2550::name_long() const throw()
+string DeviceTSL2550::name_long() throw()
 {
-	return(name_long_static());
+	ostringstream rv;
+	rv << name_long_static() << " (bus: " << parent()->device_interface_desc(*private_data) << ")";
+	return(rv.str());
 }
 
 bool DeviceTSL2550::probe() throw()
 {
-	ostringstream		control_name_short, control_name_long;
-	Util::byte_array	out;
+	ostringstream	control_name_short, control_name_long;
+	ByteArray		bytes;
 
 	try
 	{
-		// s <72> p w 00 p w 03 p r 01 p // cycle power ensure fresh readings
+		write_data(1000, 0x00);		// power down
+		write_data(1000, 0x03);		// power up / read state
 
-		out = command("w 00 p w 03 p r 01");
-
-		if(out.size() != 1)
+		if(read_data(bytes, 1, 1000) != 1)
 			throw(minor_exception("incorrect length in reply"));
 
-		if(out[0] != 0x03)
+		if(bytes[0] != 0x03)
 			throw(minor_exception("incorrect reply from probe"));
+
+		write_data(1000, 0x00);		// power down
 	}
 	catch(minor_exception e)
 	{
@@ -77,7 +82,7 @@ void DeviceTSL2550::find_controls() throw()
 	{
 		control = new Control(root,
 				ID(id.interface, id.device, 1, 1),
-				0, 6500, "lux", 2, cc, 0, 0, "light", "Light sensor");
+				0, 6500, "lux", 2, cc, 0, 0, "light", "light sensor");
 	}
 	catch(minor_exception e)
 	{
@@ -152,8 +157,8 @@ double DeviceTSL2550::read_retry(int attempts, sens_t sensitivity) throw(excepti
 
 double DeviceTSL2550::read_sens(sens_t sensitivity) throw(exception)
 {
-	Util::byte_array	out;
-	string				sens_cmd;
+	ByteArray			bytes;
+	int					sens_cmd;
 	int					sens_multiplier;
 	int					retry;
 	int					ch0, ch1, cch0, cch1;
@@ -163,58 +168,59 @@ double DeviceTSL2550::read_sens(sens_t sensitivity) throw(exception)
 
 	if(sensitivity == sens_low)
 	{
-		sens_cmd			= "1d";
+		sens_cmd			= 0x1d;
 		sens_multiplier		= 5;
 		sens_id				= "low";
 	}
 	else
 	{
-		sens_cmd			= "18";
+		sens_cmd			= 0x18;
 		sens_multiplier		= 1;
 		sens_id				= "high";
 	}
 
 	// s <72> p w 00 p w 03 p r 01 p // cycle power ensure fresh readings
+	
+	write_data(100, 0x00);		// power down
+	write_data(100, 0x03);		// power up
 
-	out = command("w 00 p w 03 p r 01");
-
-	if(out.size() != 1)
+	if(read_data(bytes, 1, 100) != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));
 
-	if(out[0] != 0x03)
+	if(bytes[0] != 0x03)
 		throw(minor_exception("tsl2550: invalid reply from control\n"));
 
 	// w <18/1d> p r 01 p // select range mode
-
-	out = command("w " + sens_cmd + " p r 01");
 	
-	if(out.size() != 1)
+	write_data(100, sens_cmd);
+	
+	if(read_data(bytes, 1, 100) != 1)
 		throw(minor_exception("tsl2550: invalid reply size from control\n"));
 
-	if(out[0] != 0x1b)
+	if(bytes[0] != 0x1b)
 		throw(minor_exception("tsl2550: invalid reply from control\n"));
 
 	for(retry = 32; retry > 0; retry--)
 	{
-		usleep(20000);
+		usleep(500000);
 
 		// w 43 p r 01 p // select channel 0
 
-		out = command("w 43 p r 01");
-	
-		if(out.size() != 1)
+		write_data(100, 0x43);
+
+		if(read_data(bytes, 1, 100) != 1)
 			throw(minor_exception("tsl2550: invalid reply size from control\n"));
 
-		ch0 = out[0];
+		ch0 = bytes[0];
 
 		// w 83 p r 01 p // select channel 1
 
-		out = command("w 83 p r 01");
+		write_data(100, 0x83);
 	
-		if(out.size() != 1)
+		if(read_data(bytes, 1, 100) != 1)
 			throw(minor_exception("tsl2550: invalid reply size from control\n"));
 
-		ch1 = out[0];
+		ch1 = bytes[0];
 
 		overflow = false;
 
@@ -244,6 +250,8 @@ double DeviceTSL2550::read_sens(sens_t sensitivity) throw(exception)
 
 		break;
 	}
+
+	write_data(1000, 0x00);		// power down
 
 	if(retry == 0)
 		throw(minor_exception("tsl2550::read: invalid data retry exceeded"));

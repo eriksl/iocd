@@ -465,7 +465,7 @@ void DeviceAtmel::find_controls() throw(exception)
 			control = new Control(root,
 					ID(id.interface, id.device, DeviceAtmel::temp_sensor, ix + 1),
 					min, max, "˙C", 1, cc, DeviceAtmel::temp_sensor, ix,
-					"temp", "Temperature sensor");
+					"temp", "temperature sensor");
 
 			if(control)
 				controls.add(control);

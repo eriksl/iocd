@@ -31,9 +31,6 @@ class Control
 
 		typedef bitset<8> capset;
 
-		friend class DeviceAtmel;
-		friend class DeviceDigipicco;
-
 				Control(Interfaces *parent_controls, ID,
 						double min, double max, string unit, int precision,
 						const capset &caps, int type, int index,

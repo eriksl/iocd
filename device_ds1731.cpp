@@ -125,7 +125,7 @@ void DeviceDS1731::find_controls() throw(exception)
 
 		control = new Control(root, ID(id.interface, id.device, 1, 1),
 				-55, 125, "˙C", 2, cp, 0, 0,
-				"temp", "Temperature sensor");
+				"temp", "temperature");
 	}
 	catch(minor_exception e)
 	{

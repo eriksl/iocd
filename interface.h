@@ -27,6 +27,8 @@ class Interface
 	friend class DeviceTMP275;
 	friend class DeviceDigipicco;
 	friend class DeviceDS1731;
+	friend class DeviceDS1621;
+	friend class DeviceTSL2550;
 
 	public:
 

@@ -1,5 +1,5 @@
-#ifndef _device_ds1731_h_
-#define _device_ds1731_h_
+#ifndef _device_ds1621_h_
+#define _device_ds1621_h_
 
 #include "device.h"
 #include "id.h"
@@ -13,15 +13,15 @@ using std::string;
 class Control;
 class Interfaces;
 
-class DeviceDS1731 : public Device
+class DeviceDS1621 : public Device
 {
 	friend class InterfaceELV;
 
 	public:
 
-				DeviceDS1731(Interfaces *root, ID,
+				DeviceDS1621(Interfaces *root, ID,
 						const InterfacePrivateData *)			throw(exception);
-		virtual	~DeviceDS1731()									throw();
+		virtual	~DeviceDS1621()									throw();
 
 	private:
 
